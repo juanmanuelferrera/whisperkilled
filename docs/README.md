@@ -1,4 +1,7 @@
+<img width="904" height="820" alt="Captura de pantalla 2025-08-02 a las 20 40 27" src="https://github.com/user-attachments/assets/9e0c154f-d9e6-437b-8450-de5960ddd9e6" />
+
 # 💀 WHISPER KILLER 🎙️
+
 
 **Privacy-First Transcription & Translation Tool**
 
