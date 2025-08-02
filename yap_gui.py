@@ -117,11 +117,11 @@ class YapGUI:
         opts_frame = ttk.Frame(options_frame)
         opts_frame.pack(fill=tk.X)
         
-        self.yt_summarize_var = tk.BooleanVar()
+        self.yt_summarize_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(opts_frame, text="Generate AI Summary", 
                        variable=self.yt_summarize_var).pack(side=tk.LEFT, padx=(0, 15))
         
-        self.yt_translate_var = tk.BooleanVar()
+        self.yt_translate_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(opts_frame, text="Translate text", 
                        variable=self.yt_translate_var).pack(side=tk.LEFT, padx=(0, 15))
         
@@ -490,11 +490,11 @@ class YapGUI:
         local_opts_frame = ttk.Frame(local_options_frame)
         local_opts_frame.pack(fill=tk.X)
         
-        self.local_summarize_var = tk.BooleanVar()
+        self.local_summarize_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(local_opts_frame, text="Generate AI Summary", 
                        variable=self.local_summarize_var).pack(side=tk.LEFT, padx=(0, 15))
         
-        self.local_translate_var = tk.BooleanVar()
+        self.local_translate_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(local_opts_frame, text="Translate text", 
                        variable=self.local_translate_var).pack(side=tk.LEFT)
         
@@ -1433,7 +1433,7 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             if summarize and transcription_text:
                 self.root.after(0, lambda: self.yt_status_var.set("Generating title and summary..."))
                 title, summary = self.generate_title_and_summary(transcription_text)
-                results['summary'] = f"{title}\n\n{summary}"
+                results['summary'] = f"{title}\n{summary}"
             
             self.root.after(0, self.on_online_video_success, results)
             
@@ -1547,7 +1547,7 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             api_key = os.environ.get('OPENROUTER_API_KEY') or self.openrouter_api_key.get().strip()
             
             if not api_key:
-                return "📝 Transcription Summary", f"⚠️ OpenRouter API key required for AI summaries.\n\nPlease enter your API key in Settings tab."
+                return "⚠️ OpenRouter API key required for AI summaries.\n\nPlease enter your API key in Settings tab."
             
             model = self.translation_model.get()
             
@@ -1570,7 +1570,6 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
 Format your response exactly like this:
 TITLE: [Your title with emojis]
 
-SUMMARY:
 [First paragraph - main topic or introduction]
 
 [Second paragraph - key points or details]
@@ -1589,20 +1588,19 @@ SUMMARY:
             result = self.make_openrouter_request(article_payload)
             
             if result.startswith("⚠️"):
-                return "📝 Transcription Summary", result
+                return "⚠️ API Error", result
             
             # Parse the result to extract title and summary
             lines = result.split('\n')
             title = ""
             summary_lines = []
-            found_summary = False
+            found_title = False
             
             for line in lines:
                 if line.startswith("TITLE:"):
                     title = line.replace("TITLE:", "").strip()
-                elif line.startswith("SUMMARY:"):
-                    found_summary = True
-                elif found_summary and line.strip():
+                    found_title = True
+                elif found_title and line.strip() and not line.startswith("SUMMARY:"):
                     summary_lines.append(line.strip())
             
             if title and summary_lines:
@@ -1610,10 +1608,10 @@ SUMMARY:
                 return title, summary_text
             else:
                 # Fallback: just return the result as-is if parsing fails
-                return "📝 Transcription Summary", result
+                return "Summary", result
                 
         except Exception as e:
-            return "📝 Transcription Summary", f"Summary error: {str(e)}"
+            return "Summary Error", f"Summary error: {str(e)}"
     
     def make_openrouter_request(self, payload):
         """Make a request to OpenRouter API"""
@@ -2125,7 +2123,7 @@ Here is the text to translate and create an article from:"""
                 if summarize and transcription_text:
                     self.root.after(0, lambda: self.local_status_var.set("Generating title and summary..."))
                     title, summary = self.generate_title_and_summary(transcription_text)
-                    results['summary'] = f"{title}\n\n{summary}"
+                    results['summary'] = f"{title}\n{summary}"
             else:
                 results = {'original': transcription_text}
             
