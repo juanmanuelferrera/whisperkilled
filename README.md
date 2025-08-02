@@ -1,4 +1,4 @@
-# Yap GUI - YouTube & Video Transcription Tool
+# Whisper Killer - YouTube & Video Transcription Tool
 
 A powerful, user-friendly GUI application for transcribing YouTube videos and local video files using Apple's Speech Recognition, with AI-powered translation and summarization.
 
@@ -16,7 +16,8 @@ A powerful, user-friendly GUI application for transcribing YouTube videos and lo
 
 ### 🌍 Privacy-First Translation
 - **Local Translation**: Uses translate-shell for offline translation
-- **AI Enhancement Only**: OpenRouter used only for titles, emojis & formatting
+- **Paragraph Preservation**: Maintains original text structure and formatting
+- **AI Enhancement Only**: OpenRouter used only for titles, emojis & intelligent paragraph analysis
 - **10 Languages**: Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese, Russian, Arabic
 - **Maximum Privacy**: Original content never leaves your Mac for translation
 

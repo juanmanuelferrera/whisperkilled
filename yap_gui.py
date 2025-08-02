@@ -11,24 +11,36 @@ from pathlib import Path
 from urllib.parse import urlparse
 import base64
 import hashlib
+import sys
+import traceback
 
 class YapGUI:
     def __init__(self, root):
-        self.root = root
-        self.root.title("Yap GUI - YouTube & Video Transcription Tool")
-        self.root.geometry("900x800")
-        
-        # Variables
-        self.current_operation = None
-        self.output_dir = os.path.expanduser("~/Downloads/yap_output")
-        os.makedirs(self.output_dir, exist_ok=True)
-        
-        # Encryption key based on machine-specific info (safe for GitHub)
-        self.encryption_key = self.generate_machine_key()
-        
-        self.setup_ui()
-        self.check_dependencies()
-        self.load_encrypted_api_key()
+        try:
+            self.root = root
+            self.root.title("Whisper Killer - YouTube & Video Transcription Tool")
+            self.root.geometry("900x800")
+            
+            # Variables
+            self.current_operation = None
+            self.output_dir = os.path.expanduser("~/Downloads/yap_output")
+            os.makedirs(self.output_dir, exist_ok=True)
+            
+            # Encryption key based on machine-specific info (safe for GitHub)
+            self.encryption_key = self.generate_machine_key()
+            
+            print("Setting up UI...", file=sys.stderr)
+            self.setup_ui()
+            print("Checking dependencies...", file=sys.stderr)
+            self.check_dependencies()
+            print("Loading API key...", file=sys.stderr)
+            self.load_encrypted_api_key()
+            print("Whisper Killer initialization complete", file=sys.stderr)
+            
+        except Exception as e:
+            print(f"INIT ERROR: {e}", file=sys.stderr)
+            traceback.print_exc()
+            raise
         
     def setup_ui(self):
         # Create notebook for tabs
@@ -1141,25 +1153,40 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             
             target_code = translate_lang_codes.get(target_lang, target_lang)
             
-            # Split text into chunks to avoid command line length limits
+            # Split text by paragraphs to preserve structure
+            paragraphs = text.split('\n\n')
             max_chunk_size = 4000  # Conservative limit for command line
             chunks = []
-            words = text.split()
-            current_chunk = []
-            current_size = 0
             
-            for word in words:
-                word_size = len(word) + 1  # +1 for space
-                if current_size + word_size > max_chunk_size and current_chunk:
-                    chunks.append(' '.join(current_chunk))
-                    current_chunk = [word]
-                    current_size = word_size
+            for paragraph in paragraphs:
+                paragraph = paragraph.strip()
+                if not paragraph:
+                    continue
+                    
+                # If paragraph is too long, split it by sentences
+                if len(paragraph) > max_chunk_size:
+                    sentences = paragraph.replace('. ', '.\n').split('\n')
+                    current_chunk = []
+                    current_size = 0
+                    
+                    for sentence in sentences:
+                        sentence = sentence.strip()
+                        if not sentence:
+                            continue
+                            
+                        sentence_size = len(sentence) + 1
+                        if current_size + sentence_size > max_chunk_size and current_chunk:
+                            chunks.append(' '.join(current_chunk))
+                            current_chunk = [sentence]
+                            current_size = sentence_size
+                        else:
+                            current_chunk.append(sentence)
+                            current_size += sentence_size
+                    
+                    if current_chunk:
+                        chunks.append(' '.join(current_chunk))
                 else:
-                    current_chunk.append(word)
-                    current_size += word_size
-            
-            if current_chunk:
-                chunks.append(' '.join(current_chunk))
+                    chunks.append(paragraph)
             
             # Translate each chunk
             translated_chunks = []
@@ -1179,8 +1206,8 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
                 except Exception as e:
                     return f"⚠️ Translation error for chunk {i+1}: {str(e)}"
             
-            # Combine all translated chunks
-            full_translation = ' '.join(translated_chunks)
+            # Combine all translated chunks preserving paragraph structure
+            full_translation = '\n\n'.join(translated_chunks)
             return full_translation
             
         except Exception as e:
@@ -1205,24 +1232,32 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             target_lang_name = lang_names.get(target_lang, target_lang)
             model = self.translation_model.get()
             
-            # Enhanced prompt for formatting and title generation ONLY
-            enhancement_prompt = f"""You are a content formatter and title generator. The text below is ALREADY translated to {target_lang_name}.
+            # Enhanced prompt for intelligent paragraph analysis and formatting
+            enhancement_prompt = f"""You are an expert content formatter and title generator. The text below is ALREADY translated to {target_lang_name}.
 
 Your task is to:
-1. Create a catchy title with 2-3 relevant emojis based on the content (in {target_lang_name})
-2. Format the existing translation into well-organized paragraphs (3-4 sentences per paragraph)
-3. DO NOT retranslate - just improve formatting and add title
-4. Maintain all the original meaning and content
+1. Create a catchy, relevant title with 2-3 emojis based on the content (in {target_lang_name})
+2. Analyze the content and create logical, well-structured paragraphs:
+   - If the text already has good paragraph structure, preserve it
+   - If the text is one long block, intelligently break it into 3-4 sentence paragraphs
+   - Group related ideas together
+   - Ensure smooth flow between paragraphs
+   - Each paragraph should focus on a specific topic or idea
+3. DO NOT retranslate - only improve formatting and structure
+4. Maintain ALL original meaning and content
+5. Preserve any technical terms, names, or specific details exactly as provided
 
 Format your response exactly like this:
 TITLE: [Your title with emojis]
 
 FORMATTED_TEXT:
-[First paragraph]
+[First paragraph - introduction or main topic]
 
-[Second paragraph]
+[Second paragraph - supporting details or next main point]
 
-[Continue with more paragraphs as needed]
+[Third paragraph - additional information or examples]
+
+[Continue with more paragraphs as needed - conclusion if appropriate]
 
 Here is the already-translated text to format:"""
             
@@ -1292,23 +1327,31 @@ Here is the already-translated text to format:"""
             target_lang_name = lang_names.get(target_lang, target_lang)
             model = self.translation_model.get()
             
-            # Enhanced prompt for translation with title and formatting
-            enhanced_prompt = f"""You are a professional translator and content formatter. Please:
+            # Enhanced prompt for translation with intelligent paragraph analysis
+            enhanced_prompt = f"""You are a professional translator and expert content formatter. Please:
 
-1. First, create a catchy title with 2-3 relevant emojis based on the content (in {target_lang_name})
-2. Then translate the entire text to {target_lang_name}
-3. Format the translation into well-organized paragraphs (3-4 sentences per paragraph)
-4. Maintain the meaning and tone of the original text
+1. Create a catchy, relevant title with 2-3 emojis based on the content (in {target_lang_name})
+2. Translate the entire text to {target_lang_name} with high accuracy
+3. Analyze the content structure and create logical, well-organized paragraphs:
+   - Break long blocks of text into coherent paragraphs (3-4 sentences each)
+   - Group related ideas and concepts together
+   - Ensure smooth transitions between paragraphs
+   - Each paragraph should focus on a specific topic or theme
+   - Preserve any existing good paragraph structure from the original
+4. Maintain the exact meaning, tone, and all details from the original text
+5. Preserve technical terms, names, and specific information accurately
 
 Format your response exactly like this:
 TITLE: [Your title with emojis]
 
 TRANSLATION:
-[First paragraph of translation]
+[First paragraph - introduction or main topic]
 
-[Second paragraph of translation]
+[Second paragraph - supporting details or development]
 
-[Continue with more paragraphs as needed]
+[Third paragraph - additional points or examples]
+
+[Continue with logical paragraphs as needed - conclusion if appropriate]
 
 Here is the text to translate:"""
             
@@ -1557,18 +1600,66 @@ Here is the text to translate:"""
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save file: {e}")
 
-def main():
-    root = tk.Tk()
+def handle_exception(exc_type, exc_value, exc_traceback):
+    """Global exception handler"""
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
     
-    # Try to set a nice style
+    error_msg = f"Uncaught exception: {exc_type.__name__}: {exc_value}\n"
+    error_msg += "".join(traceback.format_tb(exc_traceback))
+    
+    print(f"ERROR: {error_msg}", file=sys.stderr)
+    
+    # Try to show in GUI if possible
     try:
-        style = ttk.Style()
-        style.theme_use('aqua')  # macOS native look
+        messagebox.showerror("Application Error", 
+                           f"An unexpected error occurred:\n{exc_type.__name__}: {exc_value}\n\nCheck terminal for details.")
     except:
         pass
-    
-    app = YapGUI(root)
-    root.mainloop()
+
+def main():
+    try:
+        # Set global exception handler
+        sys.excepthook = handle_exception
+        
+        root = tk.Tk()
+        
+        # Add protocol handler for window close
+        def on_closing():
+            try:
+                root.quit()
+                root.destroy()
+            except:
+                pass
+        
+        root.protocol("WM_DELETE_WINDOW", on_closing)
+        
+        # Try to set a nice style
+        try:
+            style = ttk.Style()
+            style.theme_use('aqua')  # macOS native look
+        except:
+            pass
+        
+        app = YapGUI(root)
+        
+        # Keep the app responsive
+        def keep_alive():
+            try:
+                root.after(1000, keep_alive)  # Check every second
+            except:
+                pass
+        
+        keep_alive()
+        
+        print("Starting Whisper Killer...", file=sys.stderr)
+        root.mainloop()
+        print("Whisper Killer closed normally", file=sys.stderr)
+        
+    except Exception as e:
+        print(f"MAIN ERROR: {e}", file=sys.stderr)
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()

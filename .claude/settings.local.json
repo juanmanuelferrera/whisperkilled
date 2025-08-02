@@ -12,7 +12,9 @@
       "Bash(git add:*)",
       "Bash(gh:*)",
       "Bash(llm models:*)",
-      "Bash(/opt/homebrew/bin/trans:*)"
+      "Bash(/opt/homebrew/bin/trans:*)",
+      "Bash(chmod:*)",
+      "Bash(ln:*)"
     ],
     "deny": []
   }

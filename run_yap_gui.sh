@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Yap GUI Launcher
+# Whisper Killer Launcher
 cd "$(dirname "$0")"
 
-echo "🎬 Starting Yap GUI..."
+echo "🎬 Starting Whisper Killer..."
 echo "📁 Output directory: ~/Downloads/yap_output"
 echo ""
 
