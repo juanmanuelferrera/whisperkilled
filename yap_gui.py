@@ -43,9 +43,21 @@ class YapGUI:
             raise
         
     def setup_ui(self):
+        # Main title
+        title_frame = ttk.Frame(self.root)
+        title_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
+        
+        main_title = ttk.Label(title_frame, text="💀 WHISPER KILLER 🎙️", 
+                              font=("Arial", 20, "bold"))
+        main_title.pack()
+        
+        subtitle = ttk.Label(title_frame, text="Privacy-First Transcription & Translation Tool", 
+                            font=("Arial", 11), foreground="gray")
+        subtitle.pack(pady=(0, 10))
+        
         # Create notebook for tabs
         notebook = ttk.Notebook(self.root)
-        notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
         
         # YouTube Tab
         self.setup_youtube_tab(notebook)
