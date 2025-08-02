@@ -7,12 +7,28 @@ import subprocess
 import os
 import tempfile
 import json
+import time
 from pathlib import Path
 from urllib.parse import urlparse
 import base64
 import hashlib
 import sys
 import traceback
+
+# Try to import Apple's Translation framework
+try:
+    import objc
+    from Foundation import NSBundle
+    
+    # Load the Translation framework
+    translation_bundle = NSBundle.bundleWithPath_('/System/Library/Frameworks/Translation.framework')
+    if translation_bundle:
+        objc.loadBundle('Translation', globals(), bundle_path='/System/Library/Frameworks/Translation.framework')
+        APPLE_TRANSLATION_AVAILABLE = True
+    else:
+        APPLE_TRANSLATION_AVAILABLE = False
+except ImportError:
+    APPLE_TRANSLATION_AVAILABLE = False
 
 class YapGUI:
     def __init__(self, root):
@@ -31,6 +47,8 @@ class YapGUI:
             
             print("Setting up UI...", file=sys.stderr)
             self.setup_ui()
+            print("Loading language preferences...", file=sys.stderr)
+            self.load_language_preferences()
             print("Checking dependencies...", file=sys.stderr)
             self.check_dependencies()
             print("Loading API key...", file=sys.stderr)
@@ -64,6 +82,9 @@ class YapGUI:
         
         # Local Video Tab
         self.setup_local_video_tab(notebook)
+        
+        # Text Translation Tab
+        self.setup_text_translation_tab(notebook)
         
         # Settings Tab
         self.setup_settings_tab(notebook)
@@ -116,13 +137,13 @@ class YapGUI:
         
         self.yt_target_lang = tk.StringVar(value="es")
         lang_combo = ttk.Combobox(translate_frame, textvariable=self.yt_target_lang, 
-                                 values=["es", "fr", "de", "it", "pt", "ja", "ko", "zh", "ru", "ar"],
+                                 values=["en", "es", "fr", "de", "it", "pt", "ja", "ko", "zh", "ru", "ar"],
                                  width=5, state="readonly")
         lang_combo.pack(side=tk.LEFT, padx=(0, 10))
         
         # Language labels
         lang_labels = {
-            "es": "Spanish", "fr": "French", "de": "German", "it": "Italian", 
+            "en": "English", "es": "Spanish", "fr": "French", "de": "German", "it": "Italian", 
             "pt": "Portuguese", "ja": "Japanese", "ko": "Korean", 
             "zh": "Chinese", "ru": "Russian", "ar": "Arabic"
         }
@@ -134,6 +155,7 @@ class YapGUI:
         # Update label when language changes
         def update_lang_label(*args):
             self.yt_lang_label.set(lang_labels.get(self.yt_target_lang.get(), ""))
+            self.save_language_preferences()  # Save preferences when changed
         self.yt_target_lang.trace_add('write', update_lang_label)
         
         # Action buttons
@@ -235,6 +257,204 @@ class YapGUI:
                                                         height=12, font=("Consolas", 11))
         self.yt_summary_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
         
+    def setup_text_translation_tab(self, notebook):
+        text_frame = ttk.Frame(notebook)
+        notebook.add(text_frame, text="📝 Text Translation")
+        
+        main_frame = ttk.Frame(text_frame, padding="15")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Input Section
+        input_frame = ttk.LabelFrame(main_frame, text="📄 Input Text", padding="10")
+        input_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        
+        # Text input area
+        text_input_frame = ttk.Frame(input_frame)
+        text_input_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Text widget with scrollbar
+        text_frame_inner = ttk.Frame(text_input_frame)
+        text_frame_inner.pack(fill=tk.BOTH, expand=True)
+        
+        self.text_input = tk.Text(text_frame_inner, wrap=tk.WORD, height=10, font=("Arial", 11))
+        text_scrollbar = ttk.Scrollbar(text_frame_inner, orient=tk.VERTICAL, command=self.text_input.yview)
+        self.text_input.configure(yscrollcommand=text_scrollbar.set)
+        
+        self.text_input.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        text_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Input buttons frame
+        input_buttons_frame = ttk.Frame(input_frame)
+        input_buttons_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        # Paste button
+        paste_text_button = ttk.Button(input_buttons_frame, text="📋 Paste Text", 
+                                      command=self.paste_text)
+        paste_text_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        # Import file button
+        import_file_button = ttk.Button(input_buttons_frame, text="📁 Import File", 
+                                       command=self.import_text_file)
+        import_file_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        # Clear button
+        clear_text_button = ttk.Button(input_buttons_frame, text="🗑️ Clear", 
+                                      command=self.clear_text_input)
+        clear_text_button.pack(side=tk.LEFT)
+        
+        # Translation Options
+        options_frame = ttk.LabelFrame(main_frame, text="⚙️ Translation Options", padding="10")
+        options_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        # Language selection
+        lang_frame = ttk.Frame(options_frame)
+        lang_frame.pack(fill=tk.X)
+        
+        # Source language selection
+        source_lang_frame = ttk.Frame(lang_frame)
+        source_lang_frame.pack(fill=tk.X, pady=(0, 5))
+        
+        ttk.Label(source_lang_frame, text="From:").pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.text_source_lang = tk.StringVar(value="en")
+        source_lang_combo = ttk.Combobox(source_lang_frame, textvariable=self.text_source_lang, 
+                                        values=self.get_apple_language_list(), width=15, state="readonly")
+        source_lang_combo.pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.text_source_lang_label = tk.StringVar(value="English")
+        ttk.Label(source_lang_frame, textvariable=self.text_source_lang_label, 
+                 font=("Arial", 9)).pack(side=tk.LEFT)
+        
+        # Target language selection
+        target_lang_frame = ttk.Frame(lang_frame)
+        target_lang_frame.pack(fill=tk.X)
+        
+        ttk.Label(target_lang_frame, text="To:").pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.text_target_lang = tk.StringVar(value="es")
+        target_lang_combo = ttk.Combobox(target_lang_frame, textvariable=self.text_target_lang, 
+                                        values=self.get_apple_language_list(), width=15, state="readonly")
+        target_lang_combo.pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.text_target_lang_label = tk.StringVar(value="Spanish")
+        ttk.Label(target_lang_frame, textvariable=self.text_target_lang_label, 
+                 font=("Arial", 9)).pack(side=tk.LEFT)
+        
+        # Update labels when languages change
+        def update_text_source_lang_label(*args):
+            self.text_source_lang_label.set(self.get_language_name(self.text_source_lang.get()))
+            self.save_language_preferences()  # Save preferences when changed
+        self.text_source_lang.trace_add('write', update_text_source_lang_label)
+        
+        def update_text_target_lang_label(*args):
+            self.text_target_lang_label.set(self.get_language_name(self.text_target_lang.get()))
+            self.save_language_preferences()  # Save preferences when changed
+        self.text_target_lang.trace_add('write', update_text_target_lang_label)
+        
+        # Translation engine options
+        engine_frame = ttk.Frame(options_frame)
+        engine_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        self.text_use_apple_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(engine_frame, text="Use Apple Translation Engine", 
+                       variable=self.text_use_apple_var).pack(side=tk.LEFT, padx=(0, 15))
+        
+        self.text_enhance_paragraphs_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(engine_frame, text="Enhance Paragraphs with AI", 
+                       variable=self.text_enhance_paragraphs_var).pack(side=tk.LEFT)
+        
+        # Action buttons
+        action_frame = ttk.Frame(main_frame)
+        action_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        self.text_translate_button = ttk.Button(action_frame, text="🔄 Translate Text", 
+                                              command=self.translate_input_text)
+        self.text_translate_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.text_clear_output_button = ttk.Button(action_frame, text="🗑️ Clear Output", 
+                                                 command=self.clear_text_output)
+        self.text_clear_output_button.pack(side=tk.LEFT)
+        
+        # Output Section
+        output_frame = ttk.LabelFrame(main_frame, text="📤 Translation Output", padding="10")
+        output_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Output notebook for tabs
+        self.text_output_notebook = ttk.Notebook(output_frame)
+        self.text_output_notebook.pack(fill=tk.BOTH, expand=True)
+        
+        # Normal translation tab
+        normal_translated_frame = ttk.Frame(self.text_output_notebook)
+        self.text_output_notebook.add(normal_translated_frame, text="Normal Translation")
+        
+        # Normal translated text widget with scrollbar
+        normal_text_frame = ttk.Frame(normal_translated_frame)
+        normal_text_frame.pack(fill=tk.BOTH, expand=True)
+        
+        self.text_normal_output = tk.Text(normal_text_frame, wrap=tk.WORD, 
+                                        height=10, font=("Arial", 11))
+        normal_scrollbar = ttk.Scrollbar(normal_text_frame, orient=tk.VERTICAL, 
+                                       command=self.text_normal_output.yview)
+        self.text_normal_output.configure(yscrollcommand=normal_scrollbar.set)
+        
+        self.text_normal_output.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        normal_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Normal output buttons
+        normal_buttons_frame = ttk.Frame(normal_translated_frame)
+        normal_buttons_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        copy_normal_button = ttk.Button(normal_buttons_frame, text="📋 Copy", 
+                                      command=lambda: self.copy_to_clipboard(self.text_normal_output))
+        copy_normal_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        save_normal_button = ttk.Button(normal_buttons_frame, text="💾 Save as File", 
+                                      command=lambda: self.save_text_file(self.text_normal_output))
+        save_normal_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        create_org_normal_button = ttk.Button(normal_buttons_frame, text="📝 Create Org File", 
+                                            command=lambda: self.create_org_file(self.text_normal_output))
+        create_org_normal_button.pack(side=tk.LEFT)
+        
+        # Enhanced translation tab (with title and emojis)
+        enhanced_translated_frame = ttk.Frame(self.text_output_notebook)
+        self.text_output_notebook.add(enhanced_translated_frame, text="Enhanced Translation")
+        
+        # Enhanced translated text widget with scrollbar
+        enhanced_text_frame = ttk.Frame(enhanced_translated_frame)
+        enhanced_text_frame.pack(fill=tk.BOTH, expand=True)
+        
+        self.text_enhanced_output = tk.Text(enhanced_text_frame, wrap=tk.WORD, 
+                                          height=10, font=("Arial", 11))
+        enhanced_scrollbar = ttk.Scrollbar(enhanced_text_frame, orient=tk.VERTICAL, 
+                                         command=self.text_enhanced_output.yview)
+        self.text_enhanced_output.configure(yscrollcommand=enhanced_scrollbar.set)
+        
+        self.text_enhanced_output.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        enhanced_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Enhanced output buttons
+        enhanced_buttons_frame = ttk.Frame(enhanced_translated_frame)
+        enhanced_buttons_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        copy_enhanced_button = ttk.Button(enhanced_buttons_frame, text="📋 Copy", 
+                                        command=lambda: self.copy_to_clipboard(self.text_enhanced_output))
+        copy_enhanced_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        save_enhanced_button = ttk.Button(enhanced_buttons_frame, text="💾 Save as File", 
+                                        command=lambda: self.save_text_file(self.text_enhanced_output))
+        save_enhanced_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        create_org_enhanced_button = ttk.Button(enhanced_buttons_frame, text="📝 Create Org File", 
+                                              command=lambda: self.create_org_file(self.text_enhanced_output))
+        create_org_enhanced_button.pack(side=tk.LEFT)
+        
+        # Status
+        self.text_status_var = tk.StringVar(value="Ready to translate")
+        text_status_label = ttk.Label(main_frame, textvariable=self.text_status_var, 
+                                     font=("Arial", 9), foreground="gray")
+        text_status_label.pack(pady=(5, 0))
+
     def setup_local_video_tab(self, notebook):
         local_frame = ttk.Frame(notebook)
         notebook.add(local_frame, text="🎬 Local Video")
@@ -292,7 +512,7 @@ class YapGUI:
         
         self.local_target_lang = tk.StringVar(value="es")
         local_lang_combo = ttk.Combobox(local_translate_frame, textvariable=self.local_target_lang, 
-                                       values=["es", "fr", "de", "it", "pt", "ja", "ko", "zh", "ru", "ar"],
+                                       values=["en", "es", "fr", "de", "it", "pt", "ja", "ko", "zh", "ru", "ar"],
                                        width=5, state="readonly")
         local_lang_combo.pack(side=tk.LEFT, padx=(0, 10))
         
@@ -303,11 +523,12 @@ class YapGUI:
         # Update label when language changes
         def update_local_lang_label(*args):
             lang_labels = {
-                "es": "Spanish", "fr": "French", "de": "German", "it": "Italian", 
+                "en": "English", "es": "Spanish", "fr": "French", "de": "German", "it": "Italian", 
                 "pt": "Portuguese", "ja": "Japanese", "ko": "Korean", 
                 "zh": "Chinese", "ru": "Russian", "ar": "Arabic"
             }
             self.local_lang_label.set(lang_labels.get(self.local_target_lang.get(), ""))
+            self.save_language_preferences()  # Save preferences when changed
         self.local_target_lang.trace_add('write', update_local_lang_label)
         
         # Action buttons
@@ -459,14 +680,14 @@ class YapGUI:
         model_combo.pack(side=tk.LEFT)
         
         # Translation Architecture Info
-        architecture_frame = ttk.LabelFrame(api_frame, text="🔒 Privacy-First Translation Architecture", padding="10")
+        architecture_frame = ttk.LabelFrame(api_frame, text="🔄 Translation Architecture", padding="10")
         architecture_frame.pack(fill=tk.X, pady=(10, 0))
         
         architecture_info = ttk.Label(architecture_frame, 
-                                    text="1. 🏠 Translation: Local translate-shell (offline translation)\n" +
-                                         "2. 🤖 Enhancement: OpenRouter API for titles, emojis & formatting only\n" +
-                                         "3. 🔒 Privacy: Original content never leaves your Mac for translation\n" +
-                                         "4. 🌐 Fallback: Full OpenRouter translation if local translation fails", 
+                                    text="1. 🧠 Smart Analysis: Detects if text has good paragraph structure\n" +
+                                         "2. 🍎 Good Structure: Apple Live Translation + minimal AI enhancement\n" +
+                                         "3. 🤖 Poor Structure: Full AI translation with smart paragraph creation\n" +
+                                         "4. 🔒 Privacy: Prioritizes local translation when structure allows", 
                                     font=("Arial", 9), wraplength=600)
         architecture_info.pack()
         
@@ -667,6 +888,58 @@ class YapGUI:
             except:
                 pass
     
+    def save_language_preferences(self):
+        """Save language preferences to local file"""
+        # Don't save if we're currently loading preferences
+        if hasattr(self, '_loading_preferences') and self._loading_preferences:
+            return
+            
+        try:
+            prefs_file = os.path.join(self.output_dir, '.yap_language_prefs')
+            prefs = {
+                'text_source_lang': self.text_source_lang.get(),
+                'text_target_lang': self.text_target_lang.get(),
+                'youtube_target_lang': self.yt_target_lang.get(),
+                'local_target_lang': self.local_target_lang.get()
+            }
+            
+            with open(prefs_file, 'w') as f:
+                json.dump(prefs, f)
+        except Exception as e:
+            print(f"Failed to save language preferences: {e}", file=sys.stderr)
+    
+    def load_language_preferences(self):
+        """Load language preferences from local file"""
+        try:
+            prefs_file = os.path.join(self.output_dir, '.yap_language_prefs')
+            if os.path.exists(prefs_file):
+                with open(prefs_file, 'r') as f:
+                    prefs = json.load(f)
+                    
+                    # Temporarily disable automatic saving
+                    self._loading_preferences = True
+                    
+                    # Set text translation preferences
+                    if 'text_source_lang' in prefs:
+                        self.text_source_lang.set(prefs['text_source_lang'])
+                    if 'text_target_lang' in prefs:
+                        self.text_target_lang.set(prefs['text_target_lang'])
+                    
+                    # Set YouTube translation preferences
+                    if 'youtube_target_lang' in prefs:
+                        self.yt_target_lang.set(prefs['youtube_target_lang'])
+                    
+                    # Set local video translation preferences
+                    if 'local_target_lang' in prefs:
+                        self.local_target_lang.set(prefs['local_target_lang'])
+                    
+                    # Re-enable automatic saving
+                    self._loading_preferences = False
+                        
+        except Exception as e:
+            print(f"Failed to load language preferences: {e}", file=sys.stderr)
+            self._loading_preferences = False
+    
     def paste_url(self):
         try:
             clipboard_content = self.root.clipboard_get()
@@ -674,6 +947,258 @@ class YapGUI:
                 self.youtube_url_var.set(clipboard_content.strip())
         except:
             pass
+    
+    def paste_text(self):
+        """Paste text from clipboard"""
+        try:
+            text = self.root.clipboard_get()
+            self.text_input.delete(1.0, tk.END)
+            self.text_input.insert(1.0, text)
+        except:
+            messagebox.showwarning("Warning", "No text found in clipboard")
+    
+    def import_text_file(self):
+        """Import text from file"""
+        file_path = filedialog.askopenfilename(
+            title="Select Text File",
+            filetypes=[
+                ("Text files", "*.txt"),
+                ("All files", "*.*")
+            ]
+        )
+        
+        if file_path:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    content = file.read()
+                    self.text_input.delete(1.0, tk.END)
+                    self.text_input.insert(1.0, content)
+                    self.text_status_var.set(f"Imported: {os.path.basename(file_path)}")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to import file: {str(e)}")
+    
+    def clear_text_input(self):
+        """Clear the text input area"""
+        self.text_input.delete(1.0, tk.END)
+        self.text_status_var.set("Input cleared")
+    
+    def clear_text_output(self):
+        """Clear the text output areas"""
+        self.text_normal_output.delete(1.0, tk.END)
+        self.text_enhanced_output.delete(1.0, tk.END)
+        self.text_status_var.set("Output cleared")
+    
+    def translate_input_text(self):
+        """Translate the input text"""
+        text = self.text_input.get(1.0, tk.END).strip()
+        
+        if not text:
+            messagebox.showwarning("Warning", "Please enter some text to translate")
+            return
+        
+        source_lang = self.text_source_lang.get()
+        target_lang = self.text_target_lang.get()
+        use_apple = self.text_use_apple_var.get()
+        enhance_paragraphs = self.text_enhance_paragraphs_var.get()
+        
+        # Disable translate button during processing
+        self.text_translate_button.config(state='disabled')
+        self.text_status_var.set("Translating...")
+        
+        # Run translation in a separate thread
+        def translate_thread():
+            try:
+                # Generate normal translation (without title/emojis)
+                if use_apple:
+                    normal_result = self.translate_with_apple_live_translation(text, source_lang, target_lang)
+                    if normal_result.startswith("⚠️"):
+                        normal_result = self.translate_with_local_tool_fallback(text, source_lang, target_lang)
+                else:
+                    # For AI-only, get the translation without title
+                    normal_result = self.translate_with_apple_live_translation(text, source_lang, target_lang)
+                    if normal_result.startswith("⚠️"):
+                        normal_result = self.translate_with_local_tool_fallback(text, source_lang, target_lang)
+                
+                # Generate enhanced translation (with title and emojis)
+                if enhance_paragraphs:
+                    enhanced_result = self.translate_locally_then_enhance(text, source_lang, target_lang)
+                else:
+                    enhanced_result = self.translate_with_title_and_paragraphs(text, source_lang, target_lang)
+                
+                # Update UI in main thread
+                self.root.after(0, lambda: self.on_text_translation_complete(normal_result, enhanced_result))
+                
+            except Exception as e:
+                error_msg = f"Translation error: {str(e)}"
+                self.root.after(0, lambda: self.on_text_translation_error(error_msg))
+        
+        threading.Thread(target=translate_thread, daemon=True).start()
+    
+    def on_text_translation_complete(self, normal_result, enhanced_result):
+        """Handle completion of text translation"""
+        # Update normal translation output
+        self.text_normal_output.delete(1.0, tk.END)
+        self.text_normal_output.insert(1.0, normal_result)
+        
+        # Update enhanced translation output
+        self.text_enhanced_output.delete(1.0, tk.END)
+        self.text_enhanced_output.insert(1.0, enhanced_result)
+        
+        self.text_translate_button.config(state='normal')
+        self.text_status_var.set("Translation completed - Both versions ready")
+    
+    def on_text_translation_error(self, error_msg):
+        """Handle text translation error"""
+        self.text_normal_output.delete(1.0, tk.END)
+        self.text_normal_output.insert(1.0, error_msg)
+        self.text_enhanced_output.delete(1.0, tk.END)
+        self.text_enhanced_output.insert(1.0, error_msg)
+        self.text_translate_button.config(state='normal')
+        self.text_status_var.set("Translation failed")
+    
+    def get_apple_language_list(self):
+        """Get list of Apple Live Translation supported languages"""
+        return [
+            "en", "es", "fr", "de", "it", "pt", "ja", "ko", "zh", "zh-TW", "ru", "ar",
+            "nl", "pl", "tr", "th", "vi", "hi", "id", "ms", "sv", "da", "no", "fi",
+            "cs", "sk", "hu", "ro", "bg", "hr", "sl", "et", "lv", "lt", "el", "he",
+            "fa", "ur", "bn", "ta", "te", "mr", "gu", "kn", "ml", "pa", "si", "my",
+            "km", "lo", "ka", "am", "sw", "zu", "af", "is", "mt", "cy", "ga", "eu",
+            "ca", "gl", "sq", "mk", "sr", "bs", "me", "mn", "ky", "uz", "kk", "tg",
+            "tk", "az", "hy", "ne", "dz", "bo", "ug", "ps", "sd", "ks"
+        ]
+    
+    def get_language_name(self, code):
+        """Get language name from code"""
+        lang_names = {
+            "en": "English", "es": "Spanish", "fr": "French", "de": "German", "it": "Italian",
+            "pt": "Portuguese", "ja": "Japanese", "ko": "Korean", "zh": "Chinese (Simplified)",
+            "zh-TW": "Chinese (Traditional)", "ru": "Russian", "ar": "Arabic", "nl": "Dutch",
+            "pl": "Polish", "tr": "Turkish", "th": "Thai", "vi": "Vietnamese", "hi": "Hindi",
+            "id": "Indonesian", "ms": "Malay", "sv": "Swedish", "da": "Danish", "no": "Norwegian",
+            "fi": "Finnish", "cs": "Czech", "sk": "Slovak", "hu": "Hungarian", "ro": "Romanian",
+            "bg": "Bulgarian", "hr": "Croatian", "sl": "Slovenian", "et": "Estonian", "lv": "Latvian",
+            "lt": "Lithuanian", "el": "Greek", "he": "Hebrew", "fa": "Persian", "ur": "Urdu",
+            "bn": "Bengali", "ta": "Tamil", "te": "Telugu", "mr": "Marathi", "gu": "Gujarati",
+            "kn": "Kannada", "ml": "Malayalam", "pa": "Punjabi", "si": "Sinhala", "my": "Burmese",
+            "km": "Khmer", "lo": "Lao", "ka": "Georgian", "am": "Amharic", "sw": "Swahili",
+            "zu": "Zulu", "af": "Afrikaans", "is": "Icelandic", "mt": "Maltese", "cy": "Welsh",
+            "ga": "Irish", "eu": "Basque", "ca": "Catalan", "gl": "Galician", "sq": "Albanian",
+            "mk": "Macedonian", "sr": "Serbian", "bs": "Bosnian", "me": "Montenegrin",
+            "mn": "Mongolian", "ky": "Kyrgyz", "uz": "Uzbek", "kk": "Kazakh", "tg": "Tajik",
+            "tk": "Turkmen", "az": "Azerbaijani", "hy": "Armenian", "ne": "Nepali", "dz": "Dzongkha",
+            "bo": "Tibetan", "ug": "Uyghur", "ps": "Pashto", "sd": "Sindhi", "ks": "Kashmiri"
+        }
+        return lang_names.get(code, code)
+    
+    def get_apple_lang_code(self, code):
+        """Get Apple language code from short code"""
+        apple_codes = {
+            "en": "en-US", "es": "es-ES", "fr": "fr-FR", "de": "de-DE", "it": "it-IT",
+            "pt": "pt-PT", "ja": "ja-JP", "ko": "ko-KR", "zh": "zh-CN", "zh-TW": "zh-TW",
+            "ru": "ru-RU", "ar": "ar-SA", "nl": "nl-NL", "pl": "pl-PL", "tr": "tr-TR",
+            "th": "th-TH", "vi": "vi-VN", "hi": "hi-IN", "id": "id-ID", "ms": "ms-MY",
+            "sv": "sv-SE", "da": "da-DK", "no": "no-NO", "fi": "fi-FI", "cs": "cs-CZ",
+            "sk": "sk-SK", "hu": "hu-HU", "ro": "ro-RO", "bg": "bg-BG", "hr": "hr-HR",
+            "sl": "sl-SI", "et": "et-EE", "lv": "lv-LV", "lt": "lt-LT", "el": "el-GR",
+            "he": "he-IL", "fa": "fa-IR", "ur": "ur-PK", "bn": "bn-BD", "ta": "ta-IN",
+            "te": "te-IN", "mr": "mr-IN", "gu": "gu-IN", "kn": "kn-IN", "ml": "ml-IN",
+            "pa": "pa-IN", "si": "si-LK", "my": "my-MM", "km": "km-KH", "lo": "lo-LA",
+            "ka": "ka-GE", "am": "am-ET", "sw": "sw-TZ", "zu": "zu-ZA", "af": "af-ZA",
+            "is": "is-IS", "mt": "mt-MT", "cy": "cy-GB", "ga": "ga-IE", "eu": "eu-ES",
+            "ca": "ca-ES", "gl": "gl-ES", "sq": "sq-AL", "mk": "mk-MK", "sr": "sr-RS",
+            "bs": "bs-BA", "me": "me-ME", "mn": "mn-MN", "ky": "ky-KG", "uz": "uz-UZ",
+            "kk": "kk-KZ", "tg": "tg-TJ", "tk": "tk-TM", "az": "az-AZ", "hy": "hy-AM",
+            "ne": "ne-NP", "dz": "dz-BT", "bo": "bo-CN", "ug": "ug-CN", "ps": "ps-AF",
+            "sd": "sd-PK", "ks": "ks-IN"
+        }
+        return apple_codes.get(code, code)
+    
+    def save_text_file(self, text_widget):
+        """Save text widget content to file"""
+        content = text_widget.get(1.0, tk.END).strip()
+        
+        if not content:
+            messagebox.showwarning("Warning", "No content to save")
+            return
+        
+        file_path = filedialog.asksaveasfilename(
+            title="Save Translation",
+            defaultextension=".txt",
+            filetypes=[
+                ("Text files", "*.txt"),
+                ("All files", "*.*")
+            ]
+        )
+        
+        if file_path:
+            try:
+                with open(file_path, 'w', encoding='utf-8') as file:
+                    file.write(content)
+                messagebox.showinfo("Success", f"Translation saved to:\n{file_path}")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to save file: {str(e)}")
+    
+    def create_org_file(self, text_widget):
+        """Create an Org mode file from text widget content"""
+        content = text_widget.get(1.0, tk.END).strip()
+        
+        if not content:
+            messagebox.showwarning("Warning", "No content to convert to Org file")
+            return
+        
+        file_path = filedialog.asksaveasfilename(
+            title="Create Org File",
+            defaultextension=".org",
+            filetypes=[
+                ("Org files", "*.org"),
+                ("All files", "*.*")
+            ]
+        )
+        
+        if file_path:
+            try:
+                # Convert content to Org mode format
+                org_content = self.convert_to_org_format(content)
+                
+                with open(file_path, 'w', encoding='utf-8') as file:
+                    file.write(org_content)
+                messagebox.showinfo("Success", f"Org file created at:\n{file_path}")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to create Org file: {str(e)}")
+    
+    def convert_to_org_format(self, content):
+        """Convert plain text content to Org mode format"""
+        lines = content.split('\n')
+        org_lines = []
+        
+        # Add header
+        org_lines.append("#+TITLE: Translation")
+        org_lines.append(f"#+DATE: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+        org_lines.append("")
+        
+        # Process content
+        for line in lines:
+            line = line.strip()
+            if not line:
+                org_lines.append("")
+                continue
+            
+            # Check if line looks like a title (starts with emoji or is short)
+            if (line.startswith(('🌟', '✨', '🎯', '📝', '🌍', '🔍', '✅', '⚠️', '🚀', '📋', '💾', '📝')) or 
+                len(line) < 100 and line.endswith((':', '!', '?'))):
+                # Convert to Org heading
+                org_lines.append(f"* {line}")
+            elif line.startswith('=') and line.endswith('='):
+                # This is already a separator line, convert to Org separator
+                org_lines.append("")
+                org_lines.append("---")
+                org_lines.append("")
+            else:
+                # Regular paragraph
+                org_lines.append(line)
+        
+        return '\n'.join(org_lines)
     
     def browse_video_file(self):
         file_types = [
@@ -1114,24 +1639,125 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
         except Exception as e:
             return f"⚠️ API error: {str(e)}"
     
-    def translate_locally_then_enhance(self, text, target_lang):
-        """First translate locally with macOS, then enhance with OpenRouter for title and formatting"""
+    def has_good_paragraph_structure(self, text):
+        """Analyze if text already has good paragraph structure"""
+        paragraphs = text.split('\n\n')
+        
+        # Remove empty paragraphs
+        paragraphs = [p.strip() for p in paragraphs if p.strip()]
+        
+        # Check various indicators of good paragraph structure
+        if len(paragraphs) < 2:
+            return False  # Single block of text
+        
+        # Check if paragraphs have reasonable length (not too short or too long)
+        word_counts = [len(p.split()) for p in paragraphs]
+        avg_words = sum(word_counts) / len(word_counts)
+        
+        # Good paragraphs: 10-250 words on average (more flexible)
+        if avg_words < 10 or avg_words > 250:
+            return False
+        
+        # Check for variety in paragraph lengths (more lenient)
+        min_words, max_words = min(word_counts), max(word_counts)
+        variety_ratio = max_words / min_words if min_words > 0 else 1
+        
+        # Check for mixed structure (very short and very long paragraphs)
+        short_paragraphs = sum(1 for count in word_counts if count < 10)  # Reduced threshold
+        long_paragraphs = sum(1 for count in word_counts if count > 40)  # Back to 40 for better detection
+        
+        # If we have both very short and very long paragraphs, it's mixed structure
+        if short_paragraphs > 0 and long_paragraphs > 0:
+            return False
+        
+        # More flexible variety check - allow similar lengths for well-structured content
+        if variety_ratio < 1.1:  # Reduced from 1.3 to 1.1
+            # Additional check: if paragraphs are very similar in length but have good punctuation
+            proper_endings = sum(1 for p in paragraphs if p.rstrip().endswith(('.', '!', '?', ':')))
+            if proper_endings / len(paragraphs) >= 0.8:  # High punctuation quality
+                return True
+            return False
+        
+        # Check if paragraphs end with proper punctuation (more lenient)
+        proper_endings = sum(1 for p in paragraphs if p.rstrip().endswith(('.', '!', '?', ':')))
+        if proper_endings / len(paragraphs) < 0.5:  # Reduced from 0.6 to 0.5
+            return False
+        
+        return True
+    
+    def translate_locally_then_enhance(self, text, source_lang, target_lang):
+        """Hybrid approach: Preserve good paragraphs or create smart ones with AI"""
         try:
-            # Step 1: Translate locally using translate-shell
-            local_translation = self.translate_with_local_tool(text, target_lang)
+            # Step 1: Analyze paragraph structure
+            has_good_paragraphs = self.has_good_paragraph_structure(text)
             
-            if local_translation.startswith("⚠️"):
-                # If local translation fails, fallback to full OpenRouter translation
-                return self.translate_with_title_and_paragraphs(text, target_lang)
+            if has_good_paragraphs:
+                # Good structure exists - use local translation + minimal enhancement
+                local_translation = self.translate_with_apple_live_translation(text, source_lang, target_lang)
+                
+                if local_translation.startswith("⚠️"):
+                    # If local translation fails, fallback to full OpenRouter translation
+                    return self.translate_with_title_and_paragraphs(text, source_lang, target_lang)
+                
+                # Use OpenRouter only for title generation and formatting
+                return self.enhance_translation_with_openrouter(local_translation, target_lang)
             
-            # Step 2: Use OpenRouter only for title generation and formatting
-            return self.enhance_translation_with_openrouter(local_translation, target_lang)
+            else:
+                # Poor structure - use full OpenRouter for smart paragraph creation
+                print("Poor paragraph structure detected, using AI for smart paragraphs", file=sys.stderr)
+                return self.translate_with_title_and_paragraphs(text, source_lang, target_lang)
             
         except Exception as e:
             return f"⚠️ Translation error: {str(e)}"
     
-    def translate_with_local_tool(self, text, target_lang):
-        """Use translate-shell for privacy-focused local translation"""
+    def translate_with_apple_live_translation(self, text, source_lang, target_lang):
+        """Use Apple's native Live Translation framework"""
+        try:
+            if not APPLE_TRANSLATION_AVAILABLE:
+                return self.translate_with_local_tool_fallback(text, source_lang, target_lang)
+            
+            # Try to use Apple's Translation framework
+            try:
+                # Import Translation framework classes
+                from Translation import _LTTranslator
+                
+                # Create translator instance
+                translator = _LTTranslator.alloc().init()
+                
+                # Get Apple language codes
+                source_code = self.get_apple_lang_code(source_lang)
+                target_code = self.get_apple_lang_code(target_lang)
+                
+                # Split text by paragraphs to preserve structure
+                paragraphs = text.split('\n\n')
+                translated_chunks = []
+                
+                for paragraph in paragraphs:
+                    if not paragraph.strip():
+                        continue
+                    
+                    # Translate with Apple's framework
+                    translated = translator.translateText_fromLocale_toLocale_(
+                        paragraph.strip(), source_code, target_code)
+                    
+                    if translated:
+                        translated_chunks.append(str(translated))
+                    else:
+                        translated_chunks.append(paragraph.strip())
+                
+                # Combine translated paragraphs
+                full_translation = '\n\n'.join(translated_chunks)
+                return full_translation
+                
+            except Exception as e:
+                print(f"Apple Translation error: {e}", file=sys.stderr)
+                return self.translate_with_local_tool_fallback(text, source_lang, target_lang)
+                
+        except Exception as e:
+            return f"⚠️ Apple Translation error: {str(e)}"
+    
+    def translate_with_local_tool_fallback(self, text, source_lang, target_lang):
+        """Fallback to translate-shell when Apple Translation is not available"""
         try:
             # Check if translate-shell is available
             try:
@@ -1143,7 +1769,7 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             
             # Language mapping for translate-shell
             translate_lang_codes = {
-                "es": "es", "fr": "fr", "de": "de", "it": "it",
+                "en": "en", "es": "es", "fr": "fr", "de": "de", "it": "it",
                 "pt": "pt", "ja": "ja", "ko": "ko", 
                 "zh": "zh", "ru": "ru", "ar": "ar"
             }
@@ -1189,8 +1815,13 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             translated_chunks = []
             for i, chunk in enumerate(chunks):
                 try:
-                    # Use translate-shell command
-                    cmd = ['/opt/homebrew/bin/trans', '-b', f'en:{target_code}']
+                    # Use translate-shell command with auto-detection for source language
+                    if target_code == 'en':
+                        # When translating TO English, auto-detect source language
+                        cmd = ['/opt/homebrew/bin/trans', '-b', f':{target_code}']
+                    else:
+                        # When translating FROM English, specify English as source
+                        cmd = ['/opt/homebrew/bin/trans', '-b', f'en:{target_code}']
                     result = subprocess.run(cmd, input=chunk, capture_output=True, text=True, timeout=30)
                     
                     if result.returncode == 0 and result.stdout.strip():
@@ -1219,30 +1850,27 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
                 # Return the translation without enhancement if no API key
                 return f"🔒 Local Translation (No Title/Formatting)\n{'='*40}\n\n{translated_text}"
             
-            # Language mapping
-            lang_names = {
-                "es": "Spanish", "fr": "French", "de": "German", "it": "Italian",
-                "pt": "Portuguese", "ja": "Japanese", "ko": "Korean", 
-                "zh": "Chinese", "ru": "Russian", "ar": "Arabic"
-            }
-            
-            target_lang_name = lang_names.get(target_lang, target_lang)
+            # Get language name
+            target_lang_name = self.get_language_name(target_lang)
             model = self.translation_model.get()
             
             # Enhanced prompt for intelligent paragraph analysis and formatting
-            enhancement_prompt = f"""You are an expert content formatter and title generator. The text below is ALREADY translated to {target_lang_name}.
+            enhancement_prompt = f"""You are an expert content formatter and title generator specializing in creating well-structured, readable content. The text below is ALREADY translated to {target_lang_name}.
 
 Your task is to:
 1. Create a catchy, relevant title with 2-3 emojis based on the content (in {target_lang_name})
-2. Analyze the content and create logical, well-structured paragraphs:
-   - If the text already has good paragraph structure, preserve it
-   - If the text is one long block, intelligently break it into 3-4 sentence paragraphs
-   - Group related ideas together
-   - Ensure smooth flow between paragraphs
-   - Each paragraph should focus on a specific topic or idea
+2. Analyze the content and create intelligent, well-structured paragraphs:
+   - If the text already has good paragraph structure, preserve and enhance it
+   - If the text is one long block, intelligently break it into coherent paragraphs (typically 3-6 sentences each)
+   - Group related ideas, concepts, and themes together logically
+   - Ensure smooth transitions between paragraphs with connecting phrases
+   - Each paragraph should focus on a specific topic, argument, or narrative thread
+   - Consider natural speech patterns and reading flow
+   - Avoid overly long paragraphs (max ~150 words) or very short ones (min ~20 words)
 3. DO NOT retranslate - only improve formatting and structure
-4. Maintain ALL original meaning and content
-5. Preserve any technical terms, names, or specific details exactly as provided
+4. Maintain ALL original meaning, content, and translation accuracy
+5. Preserve any technical terms, names, numbers, or specific details exactly as provided
+6. Ensure each paragraph ends with proper punctuation and flows naturally to the next
 
 Format your response exactly like this:
 TITLE: [Your title with emojis]
@@ -1306,7 +1934,7 @@ Here is the already-translated text to format:"""
             # Return local translation if enhancement fails
             return f"🔒 Local Translation (Enhancement Error)\n{'='*40}\n\n{translated_text}"
 
-    def translate_with_title_and_paragraphs(self, text, target_lang):
+    def translate_with_title_and_paragraphs(self, text, source_lang, target_lang):
         """Translate text with title generation and paragraph formatting using OpenRouter API (fallback method)"""
         try:
             api_key = os.environ.get('OPENROUTER_API_KEY') or self.openrouter_api_key.get().strip()
@@ -1314,29 +1942,27 @@ Here is the already-translated text to format:"""
             if not api_key:
                 return f"⚠️ OpenRouter API key required.\n\nPlease enter your API key in Settings tab or set OPENROUTER_API_KEY environment variable.\n\nGet a key at: https://openrouter.ai/keys"
             
-            # Language mapping
-            lang_names = {
-                "es": "Spanish", "fr": "French", "de": "German", "it": "Italian",
-                "pt": "Portuguese", "ja": "Japanese", "ko": "Korean", 
-                "zh": "Chinese", "ru": "Russian", "ar": "Arabic"
-            }
-            
-            target_lang_name = lang_names.get(target_lang, target_lang)
+            # Get language names
+            source_lang_name = self.get_language_name(source_lang)
+            target_lang_name = self.get_language_name(target_lang)
             model = self.translation_model.get()
             
             # Enhanced prompt for translation with intelligent paragraph analysis
-            enhanced_prompt = f"""You are a professional translator and expert content formatter. Please:
+            enhanced_prompt = f"""You are a professional translator and expert content formatter specializing in creating well-structured, readable content. Please:
 
 1. Create a catchy, relevant title with 2-3 emojis based on the content (in {target_lang_name})
-2. Translate the entire text to {target_lang_name} with high accuracy
-3. Analyze the content structure and create logical, well-organized paragraphs:
-   - Break long blocks of text into coherent paragraphs (3-4 sentences each)
-   - Group related ideas and concepts together
-   - Ensure smooth transitions between paragraphs
-   - Each paragraph should focus on a specific topic or theme
+2. Translate the entire text from {source_lang_name} to {target_lang_name} with high accuracy and natural flow
+3. Analyze the content structure and create intelligent, well-organized paragraphs:
+   - Break long blocks of text into coherent paragraphs (typically 3-6 sentences each)
+   - Group related ideas, concepts, and themes together logically
+   - Ensure smooth transitions between paragraphs with connecting phrases
+   - Each paragraph should focus on a specific topic, argument, or narrative thread
    - Preserve any existing good paragraph structure from the original
-4. Maintain the exact meaning, tone, and all details from the original text
-5. Preserve technical terms, names, and specific information accurately
+   - Consider natural speech patterns and reading flow
+   - Avoid overly long paragraphs (max ~150 words) or very short ones (min ~20 words)
+4. Maintain the exact meaning, tone, style, and all details from the original text
+5. Preserve technical terms, names, numbers, and specific information accurately
+6. Ensure each paragraph ends with proper punctuation and flows naturally to the next
 
 Format your response exactly like this:
 TITLE: [Your title with emojis]
@@ -1398,9 +2024,9 @@ Here is the text to translate:"""
         except Exception as e:
             return f"⚠️ Translation error: {str(e)}"
     
-    def translate_text(self, text, target_lang):
+    def translate_text(self, text, source_lang, target_lang):
         """Main translation method - uses local macOS translation then OpenRouter for enhancement"""
-        return self.translate_locally_then_enhance(text, target_lang)
+        return self.translate_locally_then_enhance(text, source_lang, target_lang)
     
     def transcribe_local_video(self):
         file_path = self.local_file_var.get().strip()

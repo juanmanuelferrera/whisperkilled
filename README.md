@@ -16,12 +16,13 @@ A powerful, user-friendly GUI application for transcribing YouTube videos and lo
 - **Multiple formats**: MP4, MOV, AVI, MKV, WebM support
 - **Direct transcription**: No intermediate files needed
 
-### 🌍 Privacy-First Translation
-- **Local Translation**: Uses translate-shell for offline translation
-- **Paragraph Preservation**: Maintains original text structure and formatting
-- **AI Enhancement Only**: OpenRouter used only for titles, emojis & intelligent paragraph analysis
-- **10 Languages**: Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese, Russian, Arabic
-- **Maximum Privacy**: Original content never leaves your Mac for translation
+### 🌍 Intelligent Translation
+- **Smart Paragraph Analysis**: Automatically detects text structure quality
+- **Hybrid Approach**: Apple Live Translation for good structure, AI for poor structure
+- **Maximum Privacy**: Prioritizes local translation when possible
+- **Adaptive Enhancement**: Uses AI only when needed for smart paragraph creation
+- **11 Languages**: English, Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese, Russian, Arabic
+- **Best of Both Worlds**: Privacy + intelligent formatting
 
 ### 🤖 AI Enhancement
 - **Smart Titles**: Auto-generated titles with relevant emojis
