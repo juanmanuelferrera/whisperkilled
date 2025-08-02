@@ -1003,14 +1003,19 @@ class YapGUI:
             try:
                 # Generate normal translation (without title/emojis)
                 if use_apple:
+                    # Use Apple Live Translation for normal translation
                     normal_result = self.translate_with_apple_live_translation(text, source_lang, target_lang)
                     if normal_result.startswith("⚠️"):
                         normal_result = self.translate_with_local_tool_fallback(text, source_lang, target_lang)
                 else:
-                    # For AI-only, get the translation without title
-                    normal_result = self.translate_with_apple_live_translation(text, source_lang, target_lang)
-                    if normal_result.startswith("⚠️"):
-                        normal_result = self.translate_with_local_tool_fallback(text, source_lang, target_lang)
+                    # For AI-only, use the same translation method but without enhancement
+                    normal_result = self.translate_with_title_and_paragraphs(text, source_lang, target_lang)
+                    # Remove title and formatting for normal translation
+                    if not normal_result.startswith("⚠️"):
+                        lines = normal_result.split('\n')
+                        if len(lines) > 2:
+                            # Skip the title (first line) and return only the content
+                            normal_result = '\n'.join(lines[2:]).strip()
                 
                 # Generate enhanced translation (with title and emojis)
                 if enhance_paragraphs:
@@ -1573,13 +1578,15 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
 3. DO NOT include any labels, qualifiers, or prefixes like "TITLE:", "SUMMARY:", "ARTICLE:", etc.
 
 Return ONLY the content in this format:
-[Title with emojis]
+🌍 Your Actual Title Here 🌎
 
 [First paragraph - main topic or introduction]
 
 [Second paragraph - key points or details]
 
-[Third paragraph - additional information or conclusion if needed]"""
+[Third paragraph - additional information or conclusion if needed]
+
+IMPORTANT: Replace "Your Actual Title Here" with a real, catchy title related to the content. Do NOT use placeholder text like "[Title with emojis]" or "[Título con emojis]"""
                     },
                     {
                         "role": "user", 
@@ -1909,13 +1916,15 @@ Your task is to create a concise article (maximum 200 words) with:
 7. DO NOT include any labels, qualifiers, or prefixes like "TITLE:", "ARTICLE:", "TRANSLATION:", "SUMMARY:", etc.
 
 Return ONLY the content in this format:
-[Title with emojis]
+🌍 Your Actual Title Here 🌎
 
 [First paragraph - introduction or main topic, engaging opening]
 
 [Second paragraph - supporting details or development of ideas]
 
 [Third paragraph - additional points or conclusion if needed]
+
+IMPORTANT: Replace "Your Actual Title Here" with a real, catchy title related to the content. Do NOT use placeholder text like "[Title with emojis]" or "[Título con emojis]".
 
 Here is the already-translated text to create an article from:"""
             
@@ -2000,13 +2009,15 @@ Here is the already-translated text to create an article from:"""
 7. DO NOT include any labels, qualifiers, or prefixes like "TITLE:", "ARTICLE:", "TRANSLATION:", "SUMMARY:", etc.
 
 Return ONLY the content in this format:
-[Title with emojis]
+🌍 Your Actual Title Here 🌎
 
 [First paragraph - introduction or main topic, engaging opening]
 
 [Second paragraph - supporting details or development of ideas]
 
 [Third paragraph - additional points or conclusion if needed]
+
+IMPORTANT: Replace "Your Actual Title Here" with a real, catchy title related to the content. Do NOT use placeholder text like "[Title with emojis]" or "[Título con emojis]".
 
 Here is the text to translate and create an article from:"""
             
