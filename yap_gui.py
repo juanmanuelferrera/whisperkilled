@@ -1877,7 +1877,7 @@ TITLE: [Your title with emojis]
             
             if not api_key:
                 # Return the translation without enhancement if no API key
-                return f"🔒 Local Translation (No Title/Formatting)\n{'='*40}\n\n{translated_text}"
+                return translated_text
             
             # Get language name
             target_lang_name = self.get_language_name(target_lang)
@@ -1933,7 +1933,7 @@ Here is the already-translated text to create an article from:"""
             # Parse the result to extract title and formatted text
             if result.startswith("⚠️"):
                 # Return local translation if enhancement fails
-                return f"🔒 Local Translation (Enhancement Failed)\n\n{translated_text}"
+                return translated_text
             
             # Extract title and article content
             lines = result.split('\n')
@@ -1951,14 +1951,14 @@ Here is the already-translated text to create an article from:"""
             
             if title and article_lines:
                 article_text = '\n\n'.join([line for line in article_lines if line])
-                return f"🔒 {title}\n\n{article_text}"
+                return f"{title}\n\n{article_text}"
             else:
                 # Fallback: return the local translation with a generic title
-                return f"🔒 Local Translation\n\n{translated_text}"
+                return translated_text
                 
         except Exception as e:
             # Return local translation if enhancement fails
-            return f"🔒 Local Translation (Enhancement Error)\n\n{translated_text}"
+            return translated_text
 
     def translate_with_title_and_paragraphs(self, text, source_lang, target_lang):
         """Translate text with title generation and paragraph formatting using OpenRouter API (fallback method)"""
