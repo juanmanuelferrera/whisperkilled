@@ -5,7 +5,7 @@
 
 **Privacy-First Transcription & Translation Tool**
 
-A powerful, user-friendly GUI application for transcribing YouTube videos and local video files using Apple's Speech Recognition, with AI-powered translation and summarization. Built to kill the competition with unmatched privacy and performance.
+A powerful, user-friendly GUI application for transcribing YouTube videos and local video files using **Apple's Speech.framework** via the YAP tool, with AI-powered translation and summarization. Built to kill the competition with unmatched privacy and performance.
 
 ## ✨ Features
 
@@ -50,16 +50,41 @@ A powerful, user-friendly GUI application for transcribing YouTube videos and lo
 - **Updated Alias**: `yap` command with instance management
 - **Clean Startup**: Always starts fresh without conflicts
 
+## 🍎 Apple Technology Stack
+
+Whisper Killer leverages Apple's native frameworks for maximum privacy and performance:
+
+### **🎙️ Transcription: Apple Speech.framework**
+- **Technology**: Apple's native speech recognition framework
+- **Same as**: Siri, Voice Memos, and other Apple speech features
+- **Privacy**: 100% on-device processing
+- **Performance**: Optimized for Apple hardware
+- **Implementation**: Via the YAP tool
+
+### **🌍 Translation: Apple Neural Engine**
+- **Technology**: Apple's on-device neural processing
+- **Languages**: 82+ language pairs supported
+- **Privacy**: No cloud processing required
+- **Performance**: Real-time translation
+- **Implementation**: Via Apple Live Translation framework
+
+### **🔒 Complete Privacy**
+- **No cloud uploads** for transcription or translation
+- **No internet required** for core functionality
+- **Apple's security** built into macOS
+- **Local processing** only
+
 ## 💻 System Requirements
 
 **macOS Only - Linux/Windows Not Supported**
 
-- **macOS 13 Ventura or later** (required for Speech Recognition)
+- **macOS 13 Ventura or later** (required for Apple Speech.framework)
 - **Python 3.7+**
 - **Homebrew** for dependency management
 
 ### Why macOS Only?
-- Uses Apple's Speech Recognition framework via the `yap` tool
+- Uses **Apple's Speech.framework** via the `yap` tool for transcription
+- Uses **Apple's Neural Engine** via Live Translation for text translation
 - Leverages local translation tools for privacy
 - Optimized for Apple's on-device AI capabilities
 
@@ -216,8 +241,8 @@ Choose from multiple AI models in Settings:
 - **No plaintext storage**: Keys never stored in readable format
 
 ### Privacy Features
-- **100% local processing**: Speech recognition uses Apple's on-device AI
-- **Local translation**: Text translation done locally via translate-shell
+- **100% local processing**: Transcription uses **Apple's Speech.framework** via YAP
+- **100% local translation**: Text translation uses **Apple's Neural Engine** via Live Translation
 - **Limited API usage**: Only titles/formatting sent to OpenRouter (not original content)
 - **Fallback transparency**: Full OpenRouter translation only when local translation fails
 - **No telemetry**: No usage data collection or tracking
@@ -256,8 +281,8 @@ The app includes a built-in dependency checker in the Settings tab that shows:
 - **Other models**: Varies by provider
 
 ### Free Alternatives
-- **Core transcription**: Free with Apple Speech Recognition
-- **Text translation**: Free with Apple Live Translation (82 languages)
+- **Core transcription**: Free with **Apple's Speech.framework** via YAP
+- **Text translation**: Free with **Apple's Neural Engine** via Live Translation (82 languages)
 - **Multi-platform support**: YouTube, Facebook, Vimeo all supported
 - **No AI enhancement**: No API costs
 - **Local processing**: No ongoing fees
@@ -282,14 +307,14 @@ This project is open source. See license for details.
 
 ## 🙏 Acknowledgments
 
-- **[Yap](https://github.com/finnvoor/yap)**: Core transcription engine by [@finnvoor](https://github.com/finnvoor) - The amazing Swift-based tool that powers all transcription functionality
-- **Apple Speech Recognition**: On-device speech processing
-- **Apple Live Translation**: 82-language translation support
+- **[Yap](https://github.com/finnvoor/yap)**: Core transcription engine by [@finnvoor](https://github.com/finnvoor) - Uses **Apple's Speech.framework** for on-device speech recognition
+- **Apple Speech.framework**: Native macOS speech recognition technology (same as Siri)
+- **Apple Live Translation**: 82-language translation support using Apple's Neural Engine
 - **OpenRouter**: Multi-model API access
 - **yt-dlp**: YouTube download capabilities
 
 ### Special Thanks
-This GUI application is built on top of the excellent [Yap transcription tool](https://github.com/finnvoor/yap) created by [@finnvoor](https://github.com/finnvoor). Yap provides fast, accurate, local speech recognition using Apple's Speech framework. This project simply adds a user-friendly interface and additional features like translation and AI summaries on top of that solid foundation.
+This GUI application is built on top of the excellent [Yap transcription tool](https://github.com/finnvoor/yap) created by [@finnvoor](https://github.com/finnvoor). Yap provides fast, accurate, local speech recognition using **Apple's Speech.framework** - the same technology that powers Siri and other Apple speech features. This project simply adds a user-friendly interface and additional features like translation and AI summaries on top of that solid foundation.
 
 ## 🆘 Troubleshooting
 
