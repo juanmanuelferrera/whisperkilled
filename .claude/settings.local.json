@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(/Users/juanmanuelferreradiaz/git_projects/whisperkilled/venv/bin/python -c \"import Speech; print(''Speech framework available'')\")",
+      "Bash(/Users/juanmanuelferreradiaz/git_projects/whisperkilled/venv/bin/python cli_transcriber.py transcribe ../README.md)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(./whisperkilled/run_with_venv.sh:*)",
+      "Bash(xcode-select:*)",
+      "Bash(brew install:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}

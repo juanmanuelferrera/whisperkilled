@@ -1,0 +1,208 @@
+# Yap GUI - YouTube & Video Transcription Tool
+
+A powerful, user-friendly GUI application for transcribing YouTube videos and local video files using Apple's Speech Recognition, with AI-powered translation and summarization.
+
+## ✨ Features
+
+### 📺 YouTube Transcription
+- **One-click YouTube processing**: Paste URL, click transcribe
+- **Format options**: Plain text or SRT subtitles
+- **Audio management**: Keep or auto-delete downloaded audio
+
+### 🎬 Local Video Transcription
+- **Drag & drop interface**: Easy file selection
+- **Multiple formats**: MP4, MOV, AVI, MKV, WebM support
+- **Direct transcription**: No intermediate files needed
+
+### 🌍 Professional Translation
+- **OpenRouter Integration**: Multiple AI models available
+- **10 Languages**: Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese, Russian, Arabic
+- **Context-aware**: Maintains formatting and meaning
+
+### 🤖 AI Enhancement
+- **Smart Titles**: Auto-generated titles with relevant emojis
+- **Paragraph Formatting**: Clean, readable text structure
+- **AI Summaries**: Concise summaries of transcribed content
+
+### 🔐 Secure API Management
+- **Encrypted Storage**: API keys encrypted with machine-specific info
+- **GitHub-Safe**: Encrypted configs safe to commit publicly
+- **Auto-loading**: Remembers your settings between sessions
+
+## 🚀 Quick Start
+
+### Prerequisites
+```bash
+# Install core dependencies
+brew install finnvoor/tools/yap
+brew install yt-dlp
+
+# Optional: For AI features
+brew install llm
+brew install uv
+```
+
+### Setup
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd whisperkilled
+   ```
+
+2. **Run the application**
+   ```bash
+   python3 yap_gui.py
+   # or
+   ./run_yap_gui.sh
+   ```
+
+3. **Configure OpenRouter API** (for translation)
+   - Go to Settings tab
+   - Enter your [OpenRouter API key](https://openrouter.ai/keys)
+   - Click "Save" to encrypt and store securely
+
+## 📋 Usage
+
+### YouTube Videos
+1. Switch to **📺 YouTube** tab
+2. Paste YouTube URL
+3. Choose output format (Text/SRT)
+4. Optional: Enable translation and/or AI summary
+5. Click **🔽 Download & Transcribe**
+
+### Local Videos
+1. Switch to **🎬 Local Video** tab
+2. Browse or drag-drop your video file
+3. Configure options as needed
+4. Click **🎤 Transcribe Video**
+
+### Example Output
+```
+🎬 Tech Tutorial: Advanced Python Tips & Tricks
+==============================================
+
+📝 TRANSCRIPTION:
+Welcome to today's Python tutorial. In this video, we'll explore advanced techniques that can make your code more efficient and readable.
+
+We'll start with list comprehensions, which are a concise way to create lists. Instead of writing a traditional for loop, you can use this elegant syntax.
+
+🌍 TRANSLATION (ES):
+Bienvenidos al tutorial de Python de hoy. En este video, exploraremos técnicas avanzadas que pueden hacer que tu código sea más eficiente y legible.
+
+Comenzaremos con las comprensiones de listas, que son una forma concisa de crear listas.
+
+📋 SUMMARY:
+This tutorial covers advanced Python techniques focusing on code efficiency and readability. The main topics include list comprehensions as an alternative to traditional loops, and various syntax improvements for cleaner code.
+```
+
+## ⚙️ Configuration
+
+### Model Selection
+Choose from multiple AI models in Settings:
+- **Claude Haiku** (fast, cost-effective)
+- **GPT-3.5 Turbo** (balanced)
+- **GPT-4o Mini** (high quality)
+- **Llama 3.1 8B** (open source)
+- **Gemini Flash** (Google's model)
+
+### Output Directory
+- Default: `~/Downloads/yap_output/`
+- Customizable in Settings tab
+- Contains encrypted config and processed files
+
+## 🔒 Security & Privacy
+
+### API Key Encryption
+- **Machine-specific encryption**: Uses your computer's unique info
+- **Safe for GitHub**: Encrypted data is meaningless on other machines
+- **No plaintext storage**: Keys never stored in readable format
+
+### Privacy Features
+- **100% local processing**: Speech recognition uses Apple's on-device AI
+- **No telemetry**: No data sent anywhere except chosen translation API
+- **Secure storage**: All sensitive data encrypted locally
+
+## 🛠️ Development
+
+### Project Structure
+```
+whisperkilled/
+├── yap_gui.py              # Main application
+├── run_yap_gui.sh          # Launch script
+├── .gitignore              # Git ignore rules
+├── .yap_config             # Encrypted API key (safe to commit)
+└── README.md               # This file
+```
+
+### Dependencies Status
+The app includes a built-in dependency checker in the Settings tab that shows:
+- ✅ Required tools installed
+- ⚠️ Optional features available
+- ❌ Missing dependencies with install commands
+
+## 💰 Cost Considerations
+
+### OpenRouter Pricing (approximate)
+- **Claude Haiku**: ~$0.001-0.002 per transcription
+- **GPT-3.5 Turbo**: ~$0.002-0.005 per transcription
+- **Other models**: Varies by provider
+
+### Free Alternatives
+- **Core transcription**: Free with Apple Speech Recognition
+- **No translation/summaries**: No API costs
+- **Local processing**: No ongoing fees
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+### Adding New Features
+- **Translation providers**: Add to `translate_text()` method
+- **Output formats**: Extend format options
+- **New models**: Add to model dropdown in Settings
+
+## 📝 License
+
+This project is open source. See license for details.
+
+## 🙏 Acknowledgments
+
+- **Yap**: Core transcription engine by finnvoor
+- **Apple Speech Recognition**: On-device speech processing
+- **OpenRouter**: Multi-model API access
+- **yt-dlp**: YouTube download capabilities
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**"Speech recognition not available"**
+- Grant microphone permissions in System Preferences
+- Restart the application
+
+**"No transcription result"**  
+- Check audio quality and volume
+- Ensure file format is supported
+- Try converting to .wav format
+
+**Translation not working**
+- Verify OpenRouter API key in Settings
+- Check internet connection
+- Ensure curl is available (`brew install curl`)
+
+**GUI not appearing**
+- Install tkinter: `brew install python-tk`
+- Run from terminal to see error messages
+
+### Getting Help
+- Check the Settings tab for dependency status
+- Enable verbose logging by running from terminal
+- Report issues with sample files when possible
+
+---
+
+**Made with ❤️ for content creators, researchers, and accessibility advocates.**
