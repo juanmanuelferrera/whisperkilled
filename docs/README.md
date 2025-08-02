@@ -16,12 +16,19 @@ A powerful, user-friendly GUI application for transcribing YouTube videos and lo
 - **Multiple formats**: MP4, MOV, AVI, MKV, WebM support
 - **Direct transcription**: No intermediate files needed
 
-### 🌍 Intelligent Translation
+### 🌍 **NEW: Text Translation**
+- **Direct text input**: Paste or import text files
+- **82 Language Support**: Full Apple Live Translation coverage
+- **Dual Output System**: Normal and enhanced translations
+- **Smart Export Options**: Copy, save, and Org file creation
+- **Language Memory**: Remembers your language preferences
+
+### 🌐 **Enhanced Translation Engine**
+- **82 Languages**: Complete Apple Live Translation support
 - **Smart Paragraph Analysis**: Automatically detects text structure quality
 - **Hybrid Approach**: Apple Live Translation for good structure, AI for poor structure
 - **Maximum Privacy**: Prioritizes local translation when possible
 - **Adaptive Enhancement**: Uses AI only when needed for smart paragraph creation
-- **11 Languages**: English, Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese, Russian, Arabic
 - **Best of Both Worlds**: Privacy + intelligent formatting
 
 ### 🤖 AI Enhancement
@@ -33,6 +40,11 @@ A powerful, user-friendly GUI application for transcribing YouTube videos and lo
 - **Encrypted Storage**: API keys encrypted with machine-specific info
 - **GitHub-Safe**: Encrypted configs safe to commit publicly
 - **Auto-loading**: Remembers your settings between sessions
+
+### 🚀 **NEW: Smart Launcher**
+- **Single Instance**: Automatically detects and closes running instances
+- **Updated Alias**: `yap` command with instance management
+- **Clean Startup**: Always starts fresh without conflicts
 
 ## 💻 System Requirements
 
@@ -68,14 +80,17 @@ brew install uv
    cd whisperkilled
    ```
 
-2. **Launch Whisper Killer**
+2. **Launch Whisper Killer** (NEW: Single-instance management)
    ```bash
-   # Global command (recommended)
-   yapgui
+   # Global command with instance management (recommended)
+   yap
    
-   # Or from project directory
-   python3 yap_gui.py
+   # Or use launcher scripts
+   python3 run_yap_gui.py
    ./run_yap_gui.sh
+   
+   # Direct launch (legacy)
+   python3 yap_gui.py
    ```
 
 3. **Configure OpenRouter API** (for translation)
@@ -99,6 +114,24 @@ brew install uv
 4. Click **🎤 Transcribe Video**
 5. View results in separate tabs: Original, Translation, SRT files, Summary
 
+### **NEW: Text Translation**
+1. Switch to **🌍 Text Translation** tab
+2. **Input Options**:
+   - Paste text directly
+   - Import text file
+   - Clear input/output
+3. **Language Selection**:
+   - Choose source language (From:)
+   - Choose target language (To:)
+   - 82 languages available
+4. **Translation Options**:
+   - Apple Live Translation (privacy-first)
+   - AI Enhancement (smart formatting)
+5. **Export Results**:
+   - **📋 Copy**: Instant clipboard copy
+   - **💾 Save as File**: Save as text file
+   - **📝 Create Org File**: Export as Org mode file
+
 ### Example Output
 ```
 🎬 Tech Tutorial: Advanced Python Tips & Tricks
@@ -118,6 +151,39 @@ Comenzaremos con las comprensiones de listas, que son una forma concisa de crear
 This tutorial covers advanced Python techniques focusing on code efficiency and readability. The main topics include list comprehensions as an alternative to traditional loops, and various syntax improvements for cleaner code.
 ```
 
+## 🌐 **NEW: 82 Language Support**
+
+### Available Languages
+- **Major Languages**: English, Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese (Simplified/Traditional), Russian, Arabic
+- **European Languages**: Dutch, Polish, Turkish, Swedish, Danish, Norwegian, Finnish, Czech, Slovak, Hungarian, Romanian, Bulgarian, Croatian, Slovenian, Estonian, Latvian, Lithuanian, Greek, Hebrew, Icelandic, Maltese, Welsh, Irish, Basque, Catalan, Galician, Albanian, Macedonian, Serbian, Bosnian, Montenegrin
+- **Asian Languages**: Thai, Vietnamese, Hindi, Indonesian, Malay, Mongolian, Kyrgyz, Uzbek, Kazakh, Tajik, Turkmen, Azerbaijani, Armenian, Nepali, Dzongkha, Tibetan, Uyghur, Pashto, Sindhi, Kashmiri
+- **African Languages**: Amharic, Swahili, Zulu, Afrikaans
+- **Indian Languages**: Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Sinhala, Burmese, Khmer, Lao, Georgian
+
+### Language Features
+- **Source & Target Selection**: Choose any language pair
+- **Language Memory**: Preferences saved between sessions
+- **Real-time Labels**: See language names as you select
+- **Apple Integration**: Uses native Apple Live Translation
+
+## 📁 **NEW: Export Options**
+
+### Copy to Clipboard
+- **Instant Copy**: No dialogs, immediate clipboard access
+- **Full Content**: Copies entire translation text
+- **Cross-Platform**: Works on macOS, Windows, Linux
+
+### Save as File
+- **Text Files**: Save as `.txt` files
+- **File Dialog**: Choose destination and filename
+- **UTF-8 Encoding**: Proper character support
+
+### Create Org File
+- **Org Mode**: Export as `.org` files for Emacs
+- **Smart Formatting**: Automatic Org mode conversion
+- **Metadata**: Adds title and date headers
+- **Structure**: Converts titles and separators
+
 ## ⚙️ Configuration
 
 ### Model Selection
@@ -132,6 +198,11 @@ Choose from multiple AI models in Settings:
 - Default: `~/Downloads/yap_output/`
 - Customizable in Settings tab
 - Contains encrypted config and processed files
+
+### **NEW: Language Preferences**
+- **Automatic Saving**: Language choices remembered
+- **Cross-Tab Support**: All translation tabs remember preferences
+- **JSON Storage**: Preferences stored in `.yap_language_prefs`
 
 ## 🔒 Security & Privacy
 
@@ -154,11 +225,15 @@ Choose from multiple AI models in Settings:
 ```
 whisperkilled/
 ├── yap_gui.py              # Main Whisper Killer application
-├── run_yap_gui.sh          # Launch script
-├── yap                     # Local launcher
+├── run_yap_gui.py          # Python launcher (recommended)
+├── run_yap_gui.sh          # Shell script launcher
+├── docs/                   # 📚 Complete documentation
+│   ├── INDEX.md           # Documentation overview
+│   ├── README.md          # This file
+│   └── [feature docs...]  # Detailed feature documentation
 ├── .gitignore              # Git ignore rules
 ├── .yap_config             # Encrypted API key (safe to commit)
-└── README.md               # This file
+└── .yap_language_prefs     # Language preferences (safe to commit)
 ```
 
 ### Dependencies Status
@@ -176,7 +251,8 @@ The app includes a built-in dependency checker in the Settings tab that shows:
 
 ### Free Alternatives
 - **Core transcription**: Free with Apple Speech Recognition
-- **No translation/summaries**: No API costs
+- **Text translation**: Free with Apple Live Translation (82 languages)
+- **No AI enhancement**: No API costs
 - **Local processing**: No ongoing fees
 
 ## 🤝 Contributing
@@ -191,6 +267,7 @@ The app includes a built-in dependency checker in the Settings tab that shows:
 - **Translation providers**: Add to `translate_text()` method
 - **Output formats**: Extend format options
 - **New models**: Add to model dropdown in Settings
+- **Languages**: Extend Apple Live Translation support
 
 ## 📝 License
 
@@ -200,6 +277,7 @@ This project is open source. See license for details.
 
 - **[Yap](https://github.com/finnvoor/yap)**: Core transcription engine by [@finnvoor](https://github.com/finnvoor) - The amazing Swift-based tool that powers all transcription functionality
 - **Apple Speech Recognition**: On-device speech processing
+- **Apple Live Translation**: 82-language translation support
 - **OpenRouter**: Multi-model API access
 - **yt-dlp**: YouTube download capabilities
 
@@ -228,10 +306,15 @@ This GUI application is built on top of the excellent [Yap transcription tool](h
 - Install tkinter: `brew install python-tk`
 - Run from terminal to see error messages
 
+**Multiple instances running**
+- Use `yap` command (automatically manages instances)
+- Or use launcher scripts: `python3 run_yap_gui.py`
+
 ### Getting Help
 - Check the Settings tab for dependency status
 - Enable verbose logging by running from terminal
 - Report issues with sample files when possible
+- See `docs/` folder for detailed feature documentation
 
 ---
 
