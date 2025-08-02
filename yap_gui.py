@@ -75,13 +75,8 @@ class YapGUI:
         main_frame = ttk.Frame(youtube_frame, padding="15")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Title
-        title_label = ttk.Label(main_frame, text="YouTube Video Transcription", 
-                               font=("Arial", 16, "bold"))
-        title_label.pack(pady=(0, 20))
-        
         # URL Input
-        url_frame = ttk.LabelFrame(main_frame, text="YouTube URL", padding="10")
+        url_frame = ttk.LabelFrame(main_frame, text="🔗 YouTube URL", padding="10")
         url_frame.pack(fill=tk.X, pady=(0, 15))
         
         ttk.Label(url_frame, text="Video URL:").pack(side=tk.LEFT, padx=(0, 10))
@@ -94,7 +89,7 @@ class YapGUI:
         paste_button.pack(side=tk.RIGHT)
         
         # Options
-        options_frame = ttk.LabelFrame(main_frame, text="Options", padding="10")
+        options_frame = ttk.LabelFrame(main_frame, text="⚙️ Options", padding="10")
         options_frame.pack(fill=tk.X, pady=(0, 15))
         
         # Options
@@ -164,7 +159,7 @@ class YapGUI:
         status_label.pack(pady=(0, 10))
         
         # Output with tabs
-        output_frame = ttk.LabelFrame(main_frame, text="Output", padding="10")
+        output_frame = ttk.LabelFrame(main_frame, text="📄 Results", padding="10")
         output_frame.pack(fill=tk.BOTH, expand=True)
         
         # Create notebook for output tabs
@@ -247,13 +242,8 @@ class YapGUI:
         main_frame = ttk.Frame(local_frame, padding="15")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Title
-        title_label = ttk.Label(main_frame, text="Local Video Transcription", 
-                               font=("Arial", 16, "bold"))
-        title_label.pack(pady=(0, 20))
-        
         # File selection
-        file_frame = ttk.LabelFrame(main_frame, text="Video File", padding="10")
+        file_frame = ttk.LabelFrame(main_frame, text="📁 Video File", padding="10")
         file_frame.pack(fill=tk.X, pady=(0, 15))
         
         file_inner_frame = ttk.Frame(file_frame)
@@ -279,7 +269,7 @@ class YapGUI:
         drop_label.bind("<Button-1>", lambda e: self.browse_video_file())
         
         # Options
-        local_options_frame = ttk.LabelFrame(main_frame, text="Options", padding="10")
+        local_options_frame = ttk.LabelFrame(main_frame, text="⚙️ Options", padding="10")
         local_options_frame.pack(fill=tk.X, pady=(0, 15))
         
         # Options
@@ -346,7 +336,7 @@ class YapGUI:
         local_status_label.pack(pady=(0, 10))
         
         # Output with tabs
-        local_output_frame = ttk.LabelFrame(main_frame, text="Output", padding="10")
+        local_output_frame = ttk.LabelFrame(main_frame, text="📄 Results", padding="10")
         local_output_frame.pack(fill=tk.BOTH, expand=True)
         
         # Create notebook for output tabs
@@ -429,13 +419,8 @@ class YapGUI:
         main_frame = ttk.Frame(settings_frame, padding="15")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Title
-        title_label = ttk.Label(main_frame, text="Settings & Dependencies", 
-                               font=("Arial", 16, "bold"))
-        title_label.pack(pady=(0, 20))
-        
         # OpenRouter API Key
-        api_frame = ttk.LabelFrame(main_frame, text="OpenRouter API Key", padding="10")
+        api_frame = ttk.LabelFrame(main_frame, text="🤖 OpenRouter API Key", padding="10")
         api_frame.pack(fill=tk.X, pady=(0, 15))
         
         api_inner_frame = ttk.Frame(api_frame)
@@ -491,7 +476,7 @@ class YapGUI:
         api_info.pack(pady=(5, 0))
         
         # Output directory
-        output_frame = ttk.LabelFrame(main_frame, text="Output Directory", padding="10")
+        output_frame = ttk.LabelFrame(main_frame, text="📂 Output Directory", padding="10")
         output_frame.pack(fill=tk.X, pady=(0, 15))
         
         dir_frame = ttk.Frame(output_frame)
@@ -507,7 +492,7 @@ class YapGUI:
         ttk.Button(dir_frame, text="Open", command=self.open_output_dir).pack(side=tk.RIGHT)
         
         # Dependencies status
-        deps_frame = ttk.LabelFrame(main_frame, text="Dependencies Status", padding="10")
+        deps_frame = ttk.LabelFrame(main_frame, text="🔧 Dependencies Status", padding="10")
         deps_frame.pack(fill=tk.X, pady=(0, 15))
         
         self.deps_text = scrolledtext.ScrolledText(deps_frame, wrap=tk.WORD, height=8, 

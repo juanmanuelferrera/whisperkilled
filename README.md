@@ -1,6 +1,8 @@
-# Whisper Killer - YouTube & Video Transcription Tool
+# 💀 WHISPER KILLER 🎙️
 
-A powerful, user-friendly GUI application for transcribing YouTube videos and local video files using Apple's Speech Recognition, with AI-powered translation and summarization.
+**Privacy-First Transcription & Translation Tool**
+
+A powerful, user-friendly GUI application for transcribing YouTube videos and local video files using Apple's Speech Recognition, with AI-powered translation and summarization. Built to kill the competition with unmatched privacy and performance.
 
 ## ✨ Features
 
@@ -65,10 +67,13 @@ brew install uv
    cd whisperkilled
    ```
 
-2. **Run the application**
+2. **Launch Whisper Killer**
    ```bash
+   # Global command (recommended)
+   yapgui
+   
+   # Or from project directory
    python3 yap_gui.py
-   # or
    ./run_yap_gui.sh
    ```
 
@@ -147,8 +152,9 @@ Choose from multiple AI models in Settings:
 ### Project Structure
 ```
 whisperkilled/
-├── yap_gui.py              # Main application
+├── yap_gui.py              # Main Whisper Killer application
 ├── run_yap_gui.sh          # Launch script
+├── yap                     # Local launcher
 ├── .gitignore              # Git ignore rules
 ├── .yap_config             # Encrypted API key (safe to commit)
 └── README.md               # This file
@@ -228,4 +234,6 @@ This GUI application is built on top of the excellent [Yap transcription tool](h
 
 ---
 
-**Made with ❤️ for content creators, researchers, and accessibility advocates.**
+**💀 WHISPER KILLER 🎙️** - *Transcription that kills the competition*
+
+Made with ❤️ for content creators, researchers, and accessibility advocates.
