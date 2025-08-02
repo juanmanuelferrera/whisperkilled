@@ -297,8 +297,8 @@ class YapGUI:
         clear_text_button.pack(side=tk.LEFT)
         
         # Translation Options
-        options_frame = ttk.LabelFrame(main_frame, text="⚙️ Translation Options", padding="10")
-        options_frame.pack(fill=tk.X, pady=(0, 15))
+        options_frame = ttk.LabelFrame(main_frame, text="⚙️ Translation Options", padding="5")
+        options_frame.pack(fill=tk.X, pady=(0, 10))
         
         # Language selection
         lang_frame = ttk.Frame(options_frame)
@@ -306,7 +306,7 @@ class YapGUI:
         
         # Source language selection
         source_lang_frame = ttk.Frame(lang_frame)
-        source_lang_frame.pack(fill=tk.X, pady=(0, 5))
+        source_lang_frame.pack(fill=tk.X, pady=(0, 2))
         
         ttk.Label(source_lang_frame, text="From:").pack(side=tk.LEFT, padx=(0, 10))
         
@@ -347,7 +347,7 @@ class YapGUI:
         
         # Translation engine options
         engine_frame = ttk.Frame(options_frame)
-        engine_frame.pack(fill=tk.X, pady=(10, 0))
+        engine_frame.pack(fill=tk.X, pady=(5, 0))
         
         self.text_use_apple_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(engine_frame, text="Use Apple Translation Engine", 
@@ -359,7 +359,7 @@ class YapGUI:
         
         # Action buttons
         action_frame = ttk.Frame(main_frame)
-        action_frame.pack(fill=tk.X, pady=(0, 15))
+        action_frame.pack(fill=tk.X, pady=(0, 10))
         
         self.text_translate_button = ttk.Button(action_frame, text="🔄 Translate Text", 
                                               command=self.translate_input_text)
@@ -370,7 +370,7 @@ class YapGUI:
         self.text_clear_output_button.pack(side=tk.LEFT)
         
         # Output Section
-        output_frame = ttk.LabelFrame(main_frame, text="📤 Translation Output", padding="10")
+        output_frame = ttk.LabelFrame(main_frame, text="📤 Translation Output", padding="5")
         output_frame.pack(fill=tk.BOTH, expand=True)
         
         # Output notebook for tabs
@@ -383,7 +383,7 @@ class YapGUI:
         
         # Normal translated text widget with scrollbar
         normal_text_frame = ttk.Frame(normal_translated_frame)
-        normal_text_frame.pack(fill=tk.BOTH, expand=True)
+        normal_text_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
         self.text_normal_output = tk.Text(normal_text_frame, wrap=tk.WORD, 
                                         height=10, font=("Arial", 11))
@@ -394,12 +394,14 @@ class YapGUI:
         self.text_normal_output.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         normal_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Normal output buttons
+        # Normal translation buttons (inside the tab)
         normal_buttons_frame = ttk.Frame(normal_translated_frame)
-        normal_buttons_frame.pack(fill=tk.X, pady=(10, 0))
+        normal_buttons_frame.pack(fill=tk.X, pady=(0, 5))
         
-        copy_normal_button = ttk.Button(normal_buttons_frame, text="📋 Copy", 
-                                      command=lambda: self.copy_to_clipboard(self.text_normal_output))
+        copy_normal_button = tk.Button(normal_buttons_frame, text="📋 Copy to Clipboard", 
+                                     command=lambda: self.copy_to_clipboard(self.text_normal_output),
+                                     bg="#4CAF50", fg="white", font=("Arial", 11, "bold"),
+                                     height=2, width=18)
         copy_normal_button.pack(side=tk.LEFT, padx=(0, 10))
         
         save_normal_button = ttk.Button(normal_buttons_frame, text="💾 Save as File", 
@@ -416,7 +418,7 @@ class YapGUI:
         
         # Enhanced translated text widget with scrollbar
         enhanced_text_frame = ttk.Frame(enhanced_translated_frame)
-        enhanced_text_frame.pack(fill=tk.BOTH, expand=True)
+        enhanced_text_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         
         self.text_enhanced_output = tk.Text(enhanced_text_frame, wrap=tk.WORD, 
                                           height=10, font=("Arial", 11))
@@ -427,12 +429,14 @@ class YapGUI:
         self.text_enhanced_output.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         enhanced_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Enhanced output buttons
+        # Enhanced translation buttons (inside the tab)
         enhanced_buttons_frame = ttk.Frame(enhanced_translated_frame)
-        enhanced_buttons_frame.pack(fill=tk.X, pady=(10, 0))
+        enhanced_buttons_frame.pack(fill=tk.X, pady=(0, 5))
         
-        copy_enhanced_button = ttk.Button(enhanced_buttons_frame, text="📋 Copy", 
-                                        command=lambda: self.copy_to_clipboard(self.text_enhanced_output))
+        copy_enhanced_button = tk.Button(enhanced_buttons_frame, text="📋 Copy to Clipboard", 
+                                       command=lambda: self.copy_to_clipboard(self.text_enhanced_output),
+                                       bg="#2196F3", fg="white", font=("Arial", 11, "bold"),
+                                       height=2, width=18)
         copy_enhanced_button.pack(side=tk.LEFT, padx=(0, 10))
         
         save_enhanced_button = ttk.Button(enhanced_buttons_frame, text="💾 Save as File", 
@@ -1566,9 +1570,10 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
    - Keep the total word count to a maximum of 200 words
    - Make the content informative and easy to read
    - Preserve important details and technical terms
+3. DO NOT include any labels, qualifiers, or prefixes like "TITLE:", "SUMMARY:", "ARTICLE:", etc.
 
-Format your response exactly like this:
-TITLE: [Your title with emojis]
+Return ONLY the content in this format:
+[Title with emojis]
 
 [First paragraph - main topic or introduction]
 
@@ -1590,17 +1595,20 @@ TITLE: [Your title with emojis]
             if result.startswith("⚠️"):
                 return "⚠️ API Error", result
             
-            # Parse the result to extract title and summary
+            # Parse the result to extract title and summary (no labels expected)
             lines = result.split('\n')
             title = ""
             summary_lines = []
-            found_title = False
             
+            # First non-empty line is the title
             for line in lines:
-                if line.startswith("TITLE:"):
-                    title = line.replace("TITLE:", "").strip()
-                    found_title = True
-                elif found_title and line.strip() and not line.startswith("SUMMARY:"):
+                if line.strip():
+                    title = line.strip()
+                    break
+            
+            # All subsequent non-empty lines are the summary content
+            for line in lines[1:]:
+                if line.strip():
                     summary_lines.append(line.strip())
             
             if title and summary_lines:
@@ -1898,12 +1906,11 @@ Your task is to create a concise article (maximum 200 words) with:
 4. Keep the total word count to a maximum of 200 words
 5. Preserve important details, names, numbers, and technical terms
 6. Make the content engaging and informative while being concise
-7. DO NOT include any labels like "TRADUCCIÓN:", "TRANSLATION:", or similar text in the content
+7. DO NOT include any labels, qualifiers, or prefixes like "TITLE:", "ARTICLE:", "TRANSLATION:", "SUMMARY:", etc.
 
-Format your response exactly like this:
-TITLE: [Your title with emojis]
+Return ONLY the content in this format:
+[Title with emojis]
 
-ARTICLE:
 [First paragraph - introduction or main topic, engaging opening]
 
 [Second paragraph - supporting details or development of ideas]
@@ -1935,25 +1942,28 @@ Here is the already-translated text to create an article from:"""
                 # Return local translation if enhancement fails
                 return translated_text
             
-            # Extract title and article content
+            # Extract title and article content (no labels expected)
             lines = result.split('\n')
             title = ""
             article_lines = []
-            found_article = False
             
+            # First non-empty line is the title
             for line in lines:
-                if line.startswith("TITLE:"):
-                    title = line.replace("TITLE:", "").strip()
-                elif line.startswith("ARTICLE:"):
-                    found_article = True
-                elif found_article and line.strip():
+                if line.strip():
+                    title = line.strip()
+                    break
+            
+            # All subsequent non-empty lines are the article content
+            for line in lines[1:]:
+                if line.strip():
                     article_lines.append(line.strip())
             
             if title and article_lines:
                 article_text = '\n\n'.join([line for line in article_lines if line])
+                # Return just the title and content without any labels
                 return f"{title}\n\n{article_text}"
             else:
-                # Fallback: return the local translation with a generic title
+                # Fallback: return the local translation without any labels
                 return translated_text
                 
         except Exception as e:
@@ -1987,12 +1997,11 @@ Here is the already-translated text to create an article from:"""
 4. Keep the total word count to a maximum of 200 words
 5. Preserve important details, names, numbers, and technical terms
 6. Make the content engaging and informative while being concise
-7. DO NOT include any labels like "TRADUCCIÓN:", "TRANSLATION:", or similar text in the content
+7. DO NOT include any labels, qualifiers, or prefixes like "TITLE:", "ARTICLE:", "TRANSLATION:", "SUMMARY:", etc.
 
-Format your response exactly like this:
-TITLE: [Your title with emojis]
+Return ONLY the content in this format:
+[Title with emojis]
 
-ARTICLE:
 [First paragraph - introduction or main topic, engaging opening]
 
 [Second paragraph - supporting details or development of ideas]
@@ -2023,18 +2032,20 @@ Here is the text to translate and create an article from:"""
             if result.startswith("⚠️"):
                 return result
             
-            # Extract title and article from formatted response
+            # Extract title and article from formatted response (no labels expected)
             lines = result.split('\n')
             title = ""
             article_lines = []
-            found_article = False
             
+            # First non-empty line is the title
             for line in lines:
-                if line.startswith("TITLE:"):
-                    title = line.replace("TITLE:", "").strip()
-                elif line.startswith("ARTICLE:"):
-                    found_article = True
-                elif found_article and line.strip():
+                if line.strip():
+                    title = line.strip()
+                    break
+            
+            # All subsequent non-empty lines are the article content
+            for line in lines[1:]:
+                if line.strip():
                     article_lines.append(line.strip())
             
             if title and article_lines:
