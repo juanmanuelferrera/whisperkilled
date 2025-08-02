@@ -171,10 +171,13 @@ This project is open source. See license for details.
 
 ## 🙏 Acknowledgments
 
-- **Yap**: Core transcription engine by finnvoor
+- **[Yap](https://github.com/finnvoor/yap)**: Core transcription engine by [@finnvoor](https://github.com/finnvoor) - The amazing Swift-based tool that powers all transcription functionality
 - **Apple Speech Recognition**: On-device speech processing
 - **OpenRouter**: Multi-model API access
 - **yt-dlp**: YouTube download capabilities
+
+### Special Thanks
+This GUI application is built on top of the excellent [Yap transcription tool](https://github.com/finnvoor/yap) created by [@finnvoor](https://github.com/finnvoor). Yap provides fast, accurate, local speech recognition using Apple's Speech framework. This project simply adds a user-friendly interface and additional features like translation and AI summaries on top of that solid foundation.
 
 ## 🆘 Troubleshooting
 
