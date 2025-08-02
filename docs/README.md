@@ -6,8 +6,9 @@ A powerful, user-friendly GUI application for transcribing YouTube videos and lo
 
 ## ✨ Features
 
-### 📺 YouTube Transcription
-- **One-click YouTube processing**: Paste URL, click transcribe
+### 📺 Online Video Transcription
+- **Multi-platform support**: YouTube, Facebook, and Vimeo
+- **One-click processing**: Paste URL, click transcribe
 - **Format options**: Plain text or SRT subtitles
 - **Audio management**: Keep or auto-delete downloaded audio
 
@@ -100,9 +101,9 @@ brew install uv
 
 ## 📋 Usage
 
-### YouTube Videos
-1. Switch to **📺 YouTube** tab
-2. Paste YouTube URL
+### Online Videos (YouTube, Facebook, Vimeo)
+1. Switch to **📺 Online Videos** tab
+2. Paste video URL from any supported platform
 3. Optional: Enable translation and/or AI summary
 4. Click **🔽 Download & Transcribe**
 5. View results in separate tabs: Original, Translation, SRT files, Summary
@@ -227,9 +228,11 @@ whisperkilled/
 ├── yap_gui.py              # Main Whisper Killer application
 ├── run_yap_gui.py          # Python launcher (recommended)
 ├── run_yap_gui.sh          # Shell script launcher
+├── test_facebook_vimeo_support.py  # Platform support testing
 ├── docs/                   # 📚 Complete documentation
 │   ├── INDEX.md           # Documentation overview
 │   ├── README.md          # This file
+│   ├── FACEBOOK_VIMEO_SUPPORT.md  # Multi-platform support docs
 │   └── [feature docs...]  # Detailed feature documentation
 ├── .gitignore              # Git ignore rules
 ├── .yap_config             # Encrypted API key (safe to commit)
@@ -252,6 +255,7 @@ The app includes a built-in dependency checker in the Settings tab that shows:
 ### Free Alternatives
 - **Core transcription**: Free with Apple Speech Recognition
 - **Text translation**: Free with Apple Live Translation (82 languages)
+- **Multi-platform support**: YouTube, Facebook, Vimeo all supported
 - **No AI enhancement**: No API costs
 - **Local processing**: No ongoing fees
 

@@ -91,13 +91,13 @@ class YapGUI:
         
     def setup_youtube_tab(self, notebook):
         youtube_frame = ttk.Frame(notebook)
-        notebook.add(youtube_frame, text="📺 YouTube")
+        notebook.add(youtube_frame, text="📺 Online Videos")
         
         main_frame = ttk.Frame(youtube_frame, padding="15")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
         # URL Input
-        url_frame = ttk.LabelFrame(main_frame, text="🔗 YouTube URL", padding="10")
+        url_frame = ttk.LabelFrame(main_frame, text="🔗 Video URL (YouTube, Facebook, Vimeo)", padding="10")
         url_frame.pack(fill=tk.X, pady=(0, 15))
         
         ttk.Label(url_frame, text="Video URL:").pack(side=tk.LEFT, padx=(0, 10))
@@ -137,24 +137,18 @@ class YapGUI:
         
         self.yt_target_lang = tk.StringVar(value="es")
         lang_combo = ttk.Combobox(translate_frame, textvariable=self.yt_target_lang, 
-                                 values=["en", "es", "fr", "de", "it", "pt", "ja", "ko", "zh", "ru", "ar"],
-                                 width=5, state="readonly")
+                                 values=self.get_apple_language_list(),
+                                 width=8, state="readonly")
         lang_combo.pack(side=tk.LEFT, padx=(0, 10))
         
-        # Language labels
-        lang_labels = {
-            "en": "English", "es": "Spanish", "fr": "French", "de": "German", "it": "Italian", 
-            "pt": "Portuguese", "ja": "Japanese", "ko": "Korean", 
-            "zh": "Chinese", "ru": "Russian", "ar": "Arabic"
-        }
-        
-        self.yt_lang_label = tk.StringVar(value=lang_labels.get("es", "Spanish"))
+        # Language label
+        self.yt_lang_label = tk.StringVar(value=self.get_language_name("es"))
         ttk.Label(translate_frame, textvariable=self.yt_lang_label, 
                  font=("Arial", 9)).pack(side=tk.LEFT)
         
         # Update label when language changes
         def update_lang_label(*args):
-            self.yt_lang_label.set(lang_labels.get(self.yt_target_lang.get(), ""))
+            self.yt_lang_label.set(self.get_language_name(self.yt_target_lang.get()))
             self.save_language_preferences()  # Save preferences when changed
         self.yt_target_lang.trace_add('write', update_lang_label)
         
@@ -168,7 +162,7 @@ class YapGUI:
         self.yt_download_button.pack(side=tk.LEFT, padx=(0, 10))
         
         ttk.Button(action_frame, text="🗑️ Clear Output", 
-                  command=self.clear_youtube_output).pack(side=tk.LEFT)
+                  command=self.clear_online_video_output).pack(side=tk.LEFT)
         
         # Progress
         self.yt_progress = ttk.Progressbar(main_frame, mode='indeterminate')
@@ -512,22 +506,17 @@ class YapGUI:
         
         self.local_target_lang = tk.StringVar(value="es")
         local_lang_combo = ttk.Combobox(local_translate_frame, textvariable=self.local_target_lang, 
-                                       values=["en", "es", "fr", "de", "it", "pt", "ja", "ko", "zh", "ru", "ar"],
-                                       width=5, state="readonly")
+                                       values=self.get_apple_language_list(),
+                                       width=8, state="readonly")
         local_lang_combo.pack(side=tk.LEFT, padx=(0, 10))
         
-        self.local_lang_label = tk.StringVar(value="Spanish")
+        self.local_lang_label = tk.StringVar(value=self.get_language_name("es"))
         ttk.Label(local_translate_frame, textvariable=self.local_lang_label, 
                  font=("Arial", 9)).pack(side=tk.LEFT)
         
         # Update label when language changes
         def update_local_lang_label(*args):
-            lang_labels = {
-                "en": "English", "es": "Spanish", "fr": "French", "de": "German", "it": "Italian", 
-                "pt": "Portuguese", "ja": "Japanese", "ko": "Korean", 
-                "zh": "Chinese", "ru": "Russian", "ar": "Arabic"
-            }
-            self.local_lang_label.set(lang_labels.get(self.local_target_lang.get(), ""))
+            self.local_lang_label.set(self.get_language_name(self.local_target_lang.get()))
             self.save_language_preferences()  # Save preferences when changed
         self.local_target_lang.trace_add('write', update_local_lang_label)
         
@@ -1320,39 +1309,60 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
         url = self.youtube_url_var.get().strip()
         
         if not url:
-            messagebox.showerror("Error", "Please enter a YouTube URL")
+            messagebox.showerror("Error", "Please enter a video URL")
             return
         
-        if not self.is_valid_youtube_url(url):
-            messagebox.showerror("Error", "Please enter a valid YouTube URL")
+        if not self.is_valid_video_url(url):
+            messagebox.showerror("Error", "Please enter a valid URL from YouTube, Facebook, or Vimeo")
             return
         
         self.yt_download_button.config(state='disabled')
         self.yt_progress.start()
         self.yt_status_var.set("Starting download...")
-        # Clear all YouTube output tabs
+        # Clear all online video output tabs
         self.yt_original_text.delete(1.0, tk.END)
         self.yt_translation_text.delete(1.0, tk.END)
         self.yt_orig_srt_text.delete(1.0, tk.END)
         self.yt_trans_srt_text.delete(1.0, tk.END)
         self.yt_summary_text.delete(1.0, tk.END)
         
-        thread = threading.Thread(target=self.run_youtube_transcription, args=(url,))
+        thread = threading.Thread(target=self.run_online_video_transcription, args=(url,))
         thread.daemon = True
         thread.start()
     
-    def is_valid_youtube_url(self, url):
-        parsed = urlparse(url)
-        return (parsed.netloc in ['www.youtube.com', 'youtube.com', 'youtu.be'] or 
-                'youtube.com' in url or 'youtu.be' in url)
+    def get_platform_from_url(self, url):
+        """Detect the platform from the URL"""
+        url_lower = url.lower()
+        if any(domain in url_lower for domain in ['youtube.com', 'youtu.be']):
+            return 'YouTube'
+        elif any(domain in url_lower for domain in ['facebook.com', 'fb.com']):
+            return 'Facebook'
+        elif any(domain in url_lower for domain in ['vimeo.com']):
+            return 'Vimeo'
+        else:
+            return 'Unknown'
     
-    def run_youtube_transcription(self, url):
+    def is_valid_video_url(self, url):
+        parsed = urlparse(url)
+        # YouTube URLs
+        youtube_domains = ['www.youtube.com', 'youtube.com', 'youtu.be']
+        # Facebook URLs
+        facebook_domains = ['www.facebook.com', 'facebook.com', 'fb.com', 'www.fb.com']
+        # Vimeo URLs
+        vimeo_domains = ['www.vimeo.com', 'vimeo.com', 'player.vimeo.com']
+        
+        # Check if URL contains any of the supported platforms
+        return (parsed.netloc in youtube_domains + facebook_domains + vimeo_domains or
+                any(domain in url for domain in ['youtube.com', 'youtu.be', 'facebook.com', 'fb.com', 'vimeo.com']))
+    
+    def run_online_video_transcription(self, url):
         try:
             summarize = self.yt_summarize_var.get()
             keep_audio = self.yt_keep_audio_var.get()
+            platform = self.get_platform_from_url(url)
             
             # Step 1: Download and transcribe with separate commands for cleaner output
-            self.root.after(0, lambda: self.yt_status_var.set("Downloading video and extracting audio..."))
+            self.root.after(0, lambda: self.yt_status_var.set(f"Downloading {platform} video and extracting audio..."))
             
             # First, download the audio
             download_cmd = ['yt-dlp', url, '-x', '--audio-format', 'wav', 
@@ -1361,13 +1371,13 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             download_result = subprocess.run(download_cmd, capture_output=True, text=True, timeout=300)
             
             if download_result.returncode != 0:
-                self.root.after(0, self.on_youtube_error, f"Download failed: {download_result.stderr}")
+                self.root.after(0, self.on_online_video_error, f"{platform} download failed: {download_result.stderr}")
                 return
             
             # Find the downloaded audio file
             audio_files = list(Path(self.output_dir).glob("*.wav"))
             if not audio_files:
-                self.root.after(0, self.on_youtube_error, "No audio file found after download")
+                self.root.after(0, self.on_online_video_error, f"No audio file found after {platform} download")
                 return
             
             # Use the most recent audio file
@@ -1383,7 +1393,7 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             yap_result = subprocess.run(yap_cmd, capture_output=True, text=True, timeout=300)
             
             if yap_result.returncode != 0:
-                self.root.after(0, self.on_youtube_error, f"Transcription failed: {yap_result.stderr}")
+                self.root.after(0, self.on_online_video_error, f"{platform} transcription failed: {yap_result.stderr}")
                 return
             
             # Read the clean transcription from the output file
@@ -1413,7 +1423,9 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             if self.yt_translate_var.get() and transcription_text:
                 self.root.after(0, lambda: self.yt_status_var.set("Translating text..."))
                 target_lang = self.yt_target_lang.get()
-                translation = self.translate_text(formatted_transcription, target_lang)
+                # For online videos, assume source language is English (most common)
+                source_lang = "en"
+                translation = self.translate_text(formatted_transcription, source_lang, target_lang)
                 results['translation'] = translation
                 results['translated_srt'] = self.create_srt_from_text(translation, is_translation=True)
             
@@ -1423,12 +1435,12 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
                 title, summary = self.generate_title_and_summary(transcription_text)
                 results['summary'] = f"{title}\n{'='*len(title)}\n\n{summary}"
             
-            self.root.after(0, self.on_youtube_success, results)
+            self.root.after(0, self.on_online_video_success, results)
             
         except subprocess.TimeoutExpired:
-            self.root.after(0, self.on_youtube_error, "Operation timed out")
+            self.root.after(0, self.on_online_video_error, f"{platform} operation timed out")
         except Exception as e:
-            self.root.after(0, self.on_youtube_error, str(e))
+            self.root.after(0, self.on_online_video_error, f"{platform} error: {str(e)}")
     
     def find_latest_transcription(self, format_type):
         """Find the most recent transcription file in output directory"""
@@ -2090,7 +2102,9 @@ Here is the text to translate:"""
                 if self.local_translate_var.get() and transcription_text:
                     self.root.after(0, lambda: self.local_status_var.set("Translating text..."))
                     target_lang = self.local_target_lang.get()
-                    translation = self.translate_text(formatted_transcription, target_lang)
+                    # For local videos, assume source language is English (most common)
+                    source_lang = "en"
+                    translation = self.translate_text(formatted_transcription, source_lang, target_lang)
                     results['translation'] = translation
                     results['translated_srt'] = self.create_srt_from_text(translation, is_translation=True)
                 
@@ -2109,13 +2123,13 @@ Here is the text to translate:"""
         except Exception as e:
             self.root.after(0, self.on_local_error, str(e))
     
-    def on_youtube_success(self, results):
+    def on_online_video_success(self, results):
         self.yt_progress.stop()
         self.yt_download_button.config(state='normal')
         self.yt_status_var.set("Download and transcription completed!")
         
         # Clear all tabs
-        self.clear_youtube_output()
+        self.clear_online_video_output()
         
         # Populate tabs with results
         if 'original' in results:
@@ -2133,12 +2147,12 @@ Here is the text to translate:"""
         if 'summary' in results:
             self.yt_summary_text.insert(tk.END, results['summary'])
     
-    def on_youtube_error(self, error):
+    def on_online_video_error(self, error):
         self.yt_progress.stop()
         self.yt_download_button.config(state='normal')
         self.yt_status_var.set("Error occurred")
         
-        self.clear_youtube_output()
+        self.clear_online_video_output()
         self.yt_original_text.insert(tk.END, f"Error: {error}")
         
         messagebox.showerror("Error", f"Operation failed: {error}")
@@ -2177,7 +2191,7 @@ Here is the text to translate:"""
         
         messagebox.showerror("Error", f"Transcription failed: {error}")
     
-    def clear_youtube_output(self):
+    def clear_online_video_output(self):
         self.yt_original_text.delete(1.0, tk.END)
         self.yt_translation_text.delete(1.0, tk.END)
         self.yt_orig_srt_text.delete(1.0, tk.END)

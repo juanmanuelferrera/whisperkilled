@@ -9,6 +9,7 @@ This folder contains comprehensive documentation for the Whisper Killer applicat
 ### **Core Application**
 - **[README.md](README.md)** - Main application overview and setup instructions
 - **[TEXT_TRANSLATION_FEATURE.md](TEXT_TRANSLATION_FEATURE.md)** - Complete guide to the text translation feature
+- **[FACEBOOK_VIMEO_SUPPORT.md](FACEBOOK_VIMEO_SUPPORT.md)** - Multi-platform video support (YouTube, Facebook, Vimeo)
 
 ### **Feature Enhancements**
 - **[APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md](APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md)** - 82-language dropdown implementation
@@ -29,6 +30,7 @@ This folder contains comprehensive documentation for the Whisper Killer applicat
 3. **Text Translation**: Complete guide in [TEXT_TRANSLATION_FEATURE.md](TEXT_TRANSLATION_FEATURE.md)
 
 ### **Key Features**
+- **Multi-Platform Videos**: YouTube, Facebook, and Vimeo support ([FACEBOOK_VIMEO_SUPPORT.md](FACEBOOK_VIMEO_SUPPORT.md))
 - **82 Languages**: Apple Live Translation support ([APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md](APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md))
 - **Dual Output**: Normal and enhanced translations ([DUAL_TRANSLATION_SUMMARY.md](DUAL_TRANSLATION_SUMMARY.md))
 - **Smart Paragraphs**: Intelligent text formatting ([PARAGRAPH_ALGORITHM_IMPROVEMENTS.md](PARAGRAPH_ALGORITHM_IMPROVEMENTS.md))
@@ -58,7 +60,7 @@ This folder contains comprehensive documentation for the Whisper Killer applicat
 
 | Feature | Status | Documentation |
 |---------|--------|---------------|
-| YouTube Transcription | ✅ | [README.md](README.md) |
+| Multi-Platform Videos | ✅ | [FACEBOOK_VIMEO_SUPPORT.md](FACEBOOK_VIMEO_SUPPORT.md) |
 | Local Video Transcription | ✅ | [README.md](README.md) |
 | Text Translation | ✅ | [TEXT_TRANSLATION_FEATURE.md](TEXT_TRANSLATION_FEATURE.md) |
 | 82 Language Support | ✅ | [APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md](APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md) |
@@ -90,6 +92,7 @@ cat docs/README.md
 docs/
 ├── INDEX.md                           # This file - documentation overview
 ├── README.md                          # Main application guide
+├── FACEBOOK_VIMEO_SUPPORT.md          # Multi-platform video support
 ├── TEXT_TRANSLATION_FEATURE.md        # Text translation complete guide
 ├── APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md # 82-language implementation
 ├── DUAL_TRANSLATION_SUMMARY.md        # Dual output system
