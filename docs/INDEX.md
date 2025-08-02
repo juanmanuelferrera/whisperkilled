@@ -16,6 +16,7 @@ This folder contains comprehensive documentation for the Whisper Killer applicat
 - **[DUAL_TRANSLATION_SUMMARY.md](DUAL_TRANSLATION_SUMMARY.md)** - Normal and enhanced translation outputs
 - **[TEXT_TRANSLATION_BUTTONS_SUMMARY.md](TEXT_TRANSLATION_BUTTONS_SUMMARY.md)** - Copy and Org file creation buttons
 - **[LANGUAGE_PREFERENCE_PERSISTENCE_SUMMARY.md](LANGUAGE_PREFERENCE_PERSISTENCE_SUMMARY.md)** - Language preference memory
+- **[ARTICLE_ENHANCEMENT_FEATURE.md](ARTICLE_ENHANCEMENT_FEATURE.md)** - Article format with 200-word limit
 
 ### **Technical Improvements**
 - **[PARAGRAPH_ALGORITHM_IMPROVEMENTS.md](PARAGRAPH_ALGORITHM_IMPROVEMENTS.md)** - Smart paragraph detection and formatting
@@ -33,6 +34,7 @@ This folder contains comprehensive documentation for the Whisper Killer applicat
 - **Multi-Platform Videos**: YouTube, Facebook, and Vimeo support ([FACEBOOK_VIMEO_SUPPORT.md](FACEBOOK_VIMEO_SUPPORT.md))
 - **82 Languages**: Apple Live Translation support ([APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md](APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md))
 - **Dual Output**: Normal and enhanced translations ([DUAL_TRANSLATION_SUMMARY.md](DUAL_TRANSLATION_SUMMARY.md))
+- **Article Enhancement**: Concise articles with 200-word limit for translations and summaries ([ARTICLE_ENHANCEMENT_FEATURE.md](ARTICLE_ENHANCEMENT_FEATURE.md))
 - **Smart Paragraphs**: Intelligent text formatting ([PARAGRAPH_ALGORITHM_IMPROVEMENTS.md](PARAGRAPH_ALGORITHM_IMPROVEMENTS.md))
 - **Language Memory**: Persistent language preferences ([LANGUAGE_PREFERENCE_PERSISTENCE_SUMMARY.md](LANGUAGE_PREFERENCE_PERSISTENCE_SUMMARY.md))
 - **Export Options**: Copy, save, and Org file creation ([TEXT_TRANSLATION_BUTTONS_SUMMARY.md](TEXT_TRANSLATION_BUTTONS_SUMMARY.md))
@@ -65,6 +67,7 @@ This folder contains comprehensive documentation for the Whisper Killer applicat
 | Text Translation | ✅ | [TEXT_TRANSLATION_FEATURE.md](TEXT_TRANSLATION_FEATURE.md) |
 | 82 Language Support | ✅ | [APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md](APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md) |
 | Dual Translation Output | ✅ | [DUAL_TRANSLATION_SUMMARY.md](DUAL_TRANSLATION_SUMMARY.md) |
+| Article Enhancement | ✅ | [ARTICLE_ENHANCEMENT_FEATURE.md](ARTICLE_ENHANCEMENT_FEATURE.md) |
 | Smart Paragraphs | ✅ | [PARAGRAPH_ALGORITHM_IMPROVEMENTS.md](PARAGRAPH_ALGORITHM_IMPROVEMENTS.md) |
 | Language Preferences | ✅ | [LANGUAGE_PREFERENCE_PERSISTENCE_SUMMARY.md](LANGUAGE_PREFERENCE_PERSISTENCE_SUMMARY.md) |
 | Copy/Export Buttons | ✅ | [TEXT_TRANSLATION_BUTTONS_SUMMARY.md](TEXT_TRANSLATION_BUTTONS_SUMMARY.md) |
@@ -96,6 +99,7 @@ docs/
 ├── TEXT_TRANSLATION_FEATURE.md        # Text translation complete guide
 ├── APPLE_LANGUAGE_DROPDOWNS_SUMMARY.md # 82-language implementation
 ├── DUAL_TRANSLATION_SUMMARY.md        # Dual output system
+├── ARTICLE_ENHANCEMENT_FEATURE.md     # Article format with 200-word limit
 ├── TEXT_TRANSLATION_BUTTONS_SUMMARY.md # Copy/Export buttons
 ├── LANGUAGE_PREFERENCE_PERSISTENCE_SUMMARY.md # Language memory
 ├── PARAGRAPH_ALGORITHM_IMPROVEMENTS.md # Smart paragraph detection

@@ -1433,7 +1433,7 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             if summarize and transcription_text:
                 self.root.after(0, lambda: self.yt_status_var.set("Generating title and summary..."))
                 title, summary = self.generate_title_and_summary(transcription_text)
-                results['summary'] = f"{title}\n{'='*len(title)}\n\n{summary}"
+                results['summary'] = f"{title}\n\n{summary}"
             
             self.root.after(0, self.on_online_video_success, results)
             
@@ -1542,7 +1542,7 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
         return srt_content.strip()
     
     def generate_title_and_summary(self, text):
-        """Generate title with emojis and summary using OpenRouter API"""
+        """Generate title with emojis and article-style summary using OpenRouter API"""
         try:
             api_key = os.environ.get('OPENROUTER_API_KEY') or self.openrouter_api_key.get().strip()
             
@@ -1551,47 +1551,66 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             
             model = self.translation_model.get()
             
-            # First, generate a title with emojis
-            title_payload = {
+            # Generate article-style summary with title and content
+            article_payload = {
                 "model": model,
                 "messages": [
                     {
                         "role": "system", 
-                        "content": "Based on this transcript, create a catchy title with relevant emojis. Use 2-3 emojis that match the content. Keep it under 60 characters. Just return the title, nothing else."
-                    },
-                    {
-                        "role": "user", 
-                        "content": text[:1000]  # Limit for title generation
-                    }
-                ],
-                "max_tokens": 100,
-                "temperature": 0.3
-            }
-            
-            title = self.make_openrouter_request(title_payload)
-            if title.startswith("⚠️"):
-                return "📝 Transcription Summary", title
-            
-            # Then generate summary
-            summary_payload = {
-                "model": model,
-                "messages": [
-                    {
-                        "role": "system", 
-                        "content": "Summarize this transcript in 2-3 clear paragraphs. Focus on the main points and key information."
+                        "content": """You are an expert content writer specializing in creating engaging article summaries. Create a concise article (maximum 200 words) with:
+
+1. Create a catchy, relevant title with 2-3 emojis based on the transcript content
+2. Write a concise summary in 2-3 clear paragraphs:
+   - Focus on the main points and key information
+   - Use engaging, natural prose
+   - Keep the total word count to a maximum of 200 words
+   - Make the content informative and easy to read
+   - Preserve important details and technical terms
+
+Format your response exactly like this:
+TITLE: [Your title with emojis]
+
+SUMMARY:
+[First paragraph - main topic or introduction]
+
+[Second paragraph - key points or details]
+
+[Third paragraph - additional information or conclusion if needed]"""
                     },
                     {
                         "role": "user", 
                         "content": text
                     }
                 ],
-                "max_tokens": 500,
-                "temperature": 0.1
+                "max_tokens": 600,
+                "temperature": 0.2
             }
             
-            summary = self.make_openrouter_request(summary_payload)
+            result = self.make_openrouter_request(article_payload)
             
-            return title.strip(), summary
+            if result.startswith("⚠️"):
+                return "📝 Transcription Summary", result
+            
+            # Parse the result to extract title and summary
+            lines = result.split('\n')
+            title = ""
+            summary_lines = []
+            found_summary = False
+            
+            for line in lines:
+                if line.startswith("TITLE:"):
+                    title = line.replace("TITLE:", "").strip()
+                elif line.startswith("SUMMARY:"):
+                    found_summary = True
+                elif found_summary and line.strip():
+                    summary_lines.append(line.strip())
+            
+            if title and summary_lines:
+                summary_text = '\n\n'.join([line for line in summary_lines if line])
+                return title, summary_text
+            else:
+                # Fallback: just return the result as-is if parsing fails
+                return "📝 Transcription Summary", result
                 
         except Exception as e:
             return "📝 Transcription Summary", f"Summary error: {str(e)}"
@@ -1866,37 +1885,34 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             target_lang_name = self.get_language_name(target_lang)
             model = self.translation_model.get()
             
-            # Enhanced prompt for intelligent paragraph analysis and formatting
-            enhancement_prompt = f"""You are an expert content formatter and title generator specializing in creating well-structured, readable content. The text below is ALREADY translated to {target_lang_name}.
+            # Enhanced prompt for creating an article with title, emojis, and prose paragraphs (max 200 words)
+            enhancement_prompt = f"""You are an expert content writer and editor specializing in creating engaging articles. The text below is ALREADY translated to {target_lang_name}.
 
-Your task is to:
+Your task is to create a concise article (maximum 200 words) with:
 1. Create a catchy, relevant title with 2-3 emojis based on the content (in {target_lang_name})
-2. Analyze the content and create intelligent, well-structured paragraphs:
-   - If the text already has good paragraph structure, preserve and enhance it
-   - If the text is one long block, intelligently break it into coherent paragraphs (typically 3-6 sentences each)
-   - Group related ideas, concepts, and themes together logically
-   - Ensure smooth transitions between paragraphs with connecting phrases
-   - Each paragraph should focus on a specific topic, argument, or narrative thread
-   - Consider natural speech patterns and reading flow
-   - Avoid overly long paragraphs (max ~150 words) or very short ones (min ~20 words)
-3. DO NOT retranslate - only improve formatting and structure
-4. Maintain ALL original meaning, content, and translation accuracy
-5. Preserve any technical terms, names, numbers, or specific details exactly as provided
-6. Ensure each paragraph ends with proper punctuation and flows naturally to the next
+2. Write the content in clear, engaging prose with well-structured paragraphs:
+   - Break the content into 2-4 coherent paragraphs
+   - Each paragraph should focus on a specific aspect or theme
+   - Use smooth transitions between paragraphs
+   - Write in a natural, flowing style that's easy to read
+   - Maintain the key information and main points from the original
+3. DO NOT retranslate - only restructure and enhance the existing translation
+4. Keep the total word count to a maximum of 200 words
+5. Preserve important details, names, numbers, and technical terms
+6. Make the content engaging and informative while being concise
+7. DO NOT include any labels like "TRADUCCIÓN:", "TRANSLATION:", or similar text in the content
 
 Format your response exactly like this:
 TITLE: [Your title with emojis]
 
-FORMATTED_TEXT:
-[First paragraph - introduction or main topic]
+ARTICLE:
+[First paragraph - introduction or main topic, engaging opening]
 
-[Second paragraph - supporting details or next main point]
+[Second paragraph - supporting details or development of ideas]
 
-[Third paragraph - additional information or examples]
+[Third paragraph - additional points or conclusion if needed]
 
-[Continue with more paragraphs as needed - conclusion if appropriate]
-
-Here is the already-translated text to format:"""
+Here is the already-translated text to create an article from:"""
             
             payload = {
                 "model": model,
@@ -1919,32 +1935,32 @@ Here is the already-translated text to format:"""
             # Parse the result to extract title and formatted text
             if result.startswith("⚠️"):
                 # Return local translation if enhancement fails
-                return f"🔒 Local Translation (Enhancement Failed)\n{'='*45}\n\n{translated_text}"
+                return f"🔒 Local Translation (Enhancement Failed)\n\n{translated_text}"
             
-            # Extract title and formatted text
+            # Extract title and article content
             lines = result.split('\n')
             title = ""
-            formatted_lines = []
-            found_formatted_text = False
+            article_lines = []
+            found_article = False
             
             for line in lines:
                 if line.startswith("TITLE:"):
                     title = line.replace("TITLE:", "").strip()
-                elif line.startswith("FORMATTED_TEXT:"):
-                    found_formatted_text = True
-                elif found_formatted_text and line.strip():
-                    formatted_lines.append(line.strip())
+                elif line.startswith("ARTICLE:"):
+                    found_article = True
+                elif found_article and line.strip():
+                    article_lines.append(line.strip())
             
-            if title and formatted_lines:
-                formatted_text = '\n\n'.join([line for line in formatted_lines if line])
-                return f"🔒 {title}\n{'='*len(title)}\n\n{formatted_text}"
+            if title and article_lines:
+                article_text = '\n\n'.join([line for line in article_lines if line])
+                return f"🔒 {title}\n\n{article_text}"
             else:
                 # Fallback: return the local translation with a generic title
-                return f"🔒 Local Translation\n{'='*18}\n\n{translated_text}"
+                return f"🔒 Local Translation\n\n{translated_text}"
                 
         except Exception as e:
             # Return local translation if enhancement fails
-            return f"🔒 Local Translation (Enhancement Error)\n{'='*40}\n\n{translated_text}"
+            return f"🔒 Local Translation (Enhancement Error)\n\n{translated_text}"
 
     def translate_with_title_and_paragraphs(self, text, source_lang, target_lang):
         """Translate text with title generation and paragraph formatting using OpenRouter API (fallback method)"""
@@ -1959,36 +1975,33 @@ Here is the already-translated text to format:"""
             target_lang_name = self.get_language_name(target_lang)
             model = self.translation_model.get()
             
-            # Enhanced prompt for translation with intelligent paragraph analysis
-            enhanced_prompt = f"""You are a professional translator and expert content formatter specializing in creating well-structured, readable content. Please:
+            # Enhanced prompt for creating an article with translation, title, and emojis (max 200 words)
+            enhanced_prompt = f"""You are a professional translator and expert content writer specializing in creating engaging articles. Please:
 
 1. Create a catchy, relevant title with 2-3 emojis based on the content (in {target_lang_name})
 2. Translate the entire text from {source_lang_name} to {target_lang_name} with high accuracy and natural flow
-3. Analyze the content structure and create intelligent, well-organized paragraphs:
-   - Break long blocks of text into coherent paragraphs (typically 3-6 sentences each)
-   - Group related ideas, concepts, and themes together logically
-   - Ensure smooth transitions between paragraphs with connecting phrases
-   - Each paragraph should focus on a specific topic, argument, or narrative thread
-   - Preserve any existing good paragraph structure from the original
-   - Consider natural speech patterns and reading flow
-   - Avoid overly long paragraphs (max ~150 words) or very short ones (min ~20 words)
-4. Maintain the exact meaning, tone, style, and all details from the original text
-5. Preserve technical terms, names, numbers, and specific information accurately
-6. Ensure each paragraph ends with proper punctuation and flows naturally to the next
+3. Create a concise article (maximum 200 words) with clear, engaging prose:
+   - Break the content into 2-4 coherent paragraphs
+   - Each paragraph should focus on a specific aspect or theme
+   - Use smooth transitions between paragraphs
+   - Write in a natural, flowing style that's easy to read
+   - Maintain the key information and main points from the original
+4. Keep the total word count to a maximum of 200 words
+5. Preserve important details, names, numbers, and technical terms
+6. Make the content engaging and informative while being concise
+7. DO NOT include any labels like "TRADUCCIÓN:", "TRANSLATION:", or similar text in the content
 
 Format your response exactly like this:
 TITLE: [Your title with emojis]
 
-TRANSLATION:
-[First paragraph - introduction or main topic]
+ARTICLE:
+[First paragraph - introduction or main topic, engaging opening]
 
-[Second paragraph - supporting details or development]
+[Second paragraph - supporting details or development of ideas]
 
-[Third paragraph - additional points or examples]
+[Third paragraph - additional points or conclusion if needed]
 
-[Continue with logical paragraphs as needed - conclusion if appropriate]
-
-Here is the text to translate:"""
+Here is the text to translate and create an article from:"""
             
             payload = {
                 "model": model,
@@ -2012,23 +2025,23 @@ Here is the text to translate:"""
             if result.startswith("⚠️"):
                 return result
             
-            # Extract title and translation from formatted response
+            # Extract title and article from formatted response
             lines = result.split('\n')
             title = ""
-            translation_lines = []
-            found_translation = False
+            article_lines = []
+            found_article = False
             
             for line in lines:
                 if line.startswith("TITLE:"):
                     title = line.replace("TITLE:", "").strip()
-                elif line.startswith("TRANSLATION:"):
-                    found_translation = True
-                elif found_translation and line.strip():
-                    translation_lines.append(line.strip())
+                elif line.startswith("ARTICLE:"):
+                    found_article = True
+                elif found_article and line.strip():
+                    article_lines.append(line.strip())
             
-            if title and translation_lines:
-                formatted_translation = '\n\n'.join([line for line in translation_lines if line])
-                return f"{title}\n{'='*len(title)}\n\n{formatted_translation}"
+            if title and article_lines:
+                article_text = '\n\n'.join([line for line in article_lines if line])
+                return f"{title}\n\n{article_text}"
             else:
                 # Fallback: just return the result as-is if parsing fails
                 return result
@@ -2112,7 +2125,7 @@ Here is the text to translate:"""
                 if summarize and transcription_text:
                     self.root.after(0, lambda: self.local_status_var.set("Generating title and summary..."))
                     title, summary = self.generate_title_and_summary(transcription_text)
-                    results['summary'] = f"{title}\n{'='*len(title)}\n\n{summary}"
+                    results['summary'] = f"{title}\n\n{summary}"
             else:
                 results = {'original': transcription_text}
             
