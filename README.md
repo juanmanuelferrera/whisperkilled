@@ -14,10 +14,11 @@ A powerful, user-friendly GUI application for transcribing YouTube videos and lo
 - **Multiple formats**: MP4, MOV, AVI, MKV, WebM support
 - **Direct transcription**: No intermediate files needed
 
-### 🌍 Professional Translation
-- **OpenRouter Integration**: Multiple AI models available
+### 🌍 Privacy-First Translation
+- **Local Translation**: Uses translate-shell for offline translation
+- **AI Enhancement Only**: OpenRouter used only for titles, emojis & formatting
 - **10 Languages**: Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese, Russian, Arabic
-- **Context-aware**: Maintains formatting and meaning
+- **Maximum Privacy**: Original content never leaves your Mac for translation
 
 ### 🤖 AI Enhancement
 - **Smart Titles**: Auto-generated titles with relevant emojis
@@ -29,6 +30,19 @@ A powerful, user-friendly GUI application for transcribing YouTube videos and lo
 - **GitHub-Safe**: Encrypted configs safe to commit publicly
 - **Auto-loading**: Remembers your settings between sessions
 
+## 💻 System Requirements
+
+**macOS Only - Linux/Windows Not Supported**
+
+- **macOS 13 Ventura or later** (required for Speech Recognition)
+- **Python 3.7+**
+- **Homebrew** for dependency management
+
+### Why macOS Only?
+- Uses Apple's Speech Recognition framework via the `yap` tool
+- Leverages local translation tools for privacy
+- Optimized for Apple's on-device AI capabilities
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -36,8 +50,9 @@ A powerful, user-friendly GUI application for transcribing YouTube videos and lo
 # Install core dependencies
 brew install finnvoor/tools/yap
 brew install yt-dlp
+brew install translate-shell
 
-# Optional: For AI features
+# Optional: For AI features  
 brew install llm
 brew install uv
 ```
@@ -66,15 +81,16 @@ brew install uv
 ### YouTube Videos
 1. Switch to **📺 YouTube** tab
 2. Paste YouTube URL
-3. Choose output format (Text/SRT)
-4. Optional: Enable translation and/or AI summary
-5. Click **🔽 Download & Transcribe**
+3. Optional: Enable translation and/or AI summary
+4. Click **🔽 Download & Transcribe**
+5. View results in separate tabs: Original, Translation, SRT files, Summary
 
 ### Local Videos
 1. Switch to **🎬 Local Video** tab
 2. Browse or drag-drop your video file
 3. Configure options as needed
 4. Click **🎤 Transcribe Video**
+5. View results in separate tabs: Original, Translation, SRT files, Summary
 
 ### Example Output
 ```
@@ -119,7 +135,10 @@ Choose from multiple AI models in Settings:
 
 ### Privacy Features
 - **100% local processing**: Speech recognition uses Apple's on-device AI
-- **No telemetry**: No data sent anywhere except chosen translation API
+- **Local translation**: Text translation done locally via translate-shell
+- **Limited API usage**: Only titles/formatting sent to OpenRouter (not original content)
+- **Fallback transparency**: Full OpenRouter translation only when local translation fails
+- **No telemetry**: No usage data collection or tracking
 - **Secure storage**: All sensitive data encrypted locally
 
 ## 🛠️ Development

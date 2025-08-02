@@ -9,7 +9,10 @@
       "Bash(./whisperkilled/run_with_venv.sh:*)",
       "Bash(xcode-select:*)",
       "Bash(brew install:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(gh:*)",
+      "Bash(llm models:*)",
+      "Bash(/opt/homebrew/bin/trans:*)"
     ],
     "deny": []
   }

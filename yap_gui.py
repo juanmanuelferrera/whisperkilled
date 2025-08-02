@@ -73,19 +73,7 @@ class YapGUI:
         options_frame = ttk.LabelFrame(main_frame, text="Options", padding="10")
         options_frame.pack(fill=tk.X, pady=(0, 15))
         
-        # Output format
-        format_frame = ttk.Frame(options_frame)
-        format_frame.pack(fill=tk.X, pady=(0, 10))
-        
-        ttk.Label(format_frame, text="Output Format:").pack(side=tk.LEFT, padx=(0, 15))
-        
-        self.yt_output_format = tk.StringVar(value="txt")
-        ttk.Radiobutton(format_frame, text="Text (.txt)", variable=self.yt_output_format, 
-                       value="txt").pack(side=tk.LEFT, padx=(0, 15))
-        ttk.Radiobutton(format_frame, text="Subtitles (.srt)", variable=self.yt_output_format, 
-                       value="srt").pack(side=tk.LEFT)
-        
-        # Additional options
+        # Options
         opts_frame = ttk.Frame(options_frame)
         opts_frame.pack(fill=tk.X)
         
@@ -151,13 +139,82 @@ class YapGUI:
                                 font=("Arial", 10))
         status_label.pack(pady=(0, 10))
         
-        # Output
+        # Output with tabs
         output_frame = ttk.LabelFrame(main_frame, text="Output", padding="10")
         output_frame.pack(fill=tk.BOTH, expand=True)
         
-        self.yt_output_text = scrolledtext.ScrolledText(output_frame, wrap=tk.WORD, 
-                                                       height=12, font=("Consolas", 11))
-        self.yt_output_text.pack(fill=tk.BOTH, expand=True)
+        # Create notebook for output tabs
+        self.yt_output_notebook = ttk.Notebook(output_frame)
+        self.yt_output_notebook.pack(fill=tk.BOTH, expand=True)
+        
+        # Original transcription tab
+        yt_original_frame = ttk.Frame(self.yt_output_notebook)
+        self.yt_output_notebook.add(yt_original_frame, text="📝 Original")
+        
+        yt_orig_button_frame = ttk.Frame(yt_original_frame)
+        yt_orig_button_frame.pack(fill=tk.X, padx=5, pady=5)
+        ttk.Button(yt_orig_button_frame, text="📋 Copy", 
+                  command=lambda: self.copy_to_clipboard(self.yt_original_text)).pack(side=tk.RIGHT)
+        
+        self.yt_original_text = scrolledtext.ScrolledText(yt_original_frame, wrap=tk.WORD, 
+                                                         height=12, font=("Consolas", 11))
+        self.yt_original_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
+        
+        # Translation tab
+        yt_translation_frame = ttk.Frame(self.yt_output_notebook)
+        self.yt_output_notebook.add(yt_translation_frame, text="🌍 Translation")
+        
+        yt_trans_button_frame = ttk.Frame(yt_translation_frame)
+        yt_trans_button_frame.pack(fill=tk.X, padx=5, pady=5)
+        ttk.Button(yt_trans_button_frame, text="📋 Copy", 
+                  command=lambda: self.copy_to_clipboard(self.yt_translation_text)).pack(side=tk.RIGHT)
+        
+        self.yt_translation_text = scrolledtext.ScrolledText(yt_translation_frame, wrap=tk.WORD, 
+                                                            height=12, font=("Consolas", 11))
+        self.yt_translation_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
+        
+        # Original SRT tab
+        yt_orig_srt_frame = ttk.Frame(self.yt_output_notebook)
+        self.yt_output_notebook.add(yt_orig_srt_frame, text="🎬 Original SRT")
+        
+        yt_orig_srt_button_frame = ttk.Frame(yt_orig_srt_frame)
+        yt_orig_srt_button_frame.pack(fill=tk.X, padx=5, pady=5)
+        ttk.Button(yt_orig_srt_button_frame, text="📋 Copy", 
+                  command=lambda: self.copy_to_clipboard(self.yt_orig_srt_text)).pack(side=tk.RIGHT, padx=(0, 5))
+        ttk.Button(yt_orig_srt_button_frame, text="💾 Save SRT", 
+                  command=lambda: self.save_srt_file(self.yt_orig_srt_text)).pack(side=tk.RIGHT)
+        
+        self.yt_orig_srt_text = scrolledtext.ScrolledText(yt_orig_srt_frame, wrap=tk.WORD, 
+                                                         height=12, font=("Monaco", 10))
+        self.yt_orig_srt_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
+        
+        # Translated SRT tab
+        yt_trans_srt_frame = ttk.Frame(self.yt_output_notebook)
+        self.yt_output_notebook.add(yt_trans_srt_frame, text="🌍 Translated SRT")
+        
+        yt_trans_srt_button_frame = ttk.Frame(yt_trans_srt_frame)
+        yt_trans_srt_button_frame.pack(fill=tk.X, padx=5, pady=5)
+        ttk.Button(yt_trans_srt_button_frame, text="📋 Copy", 
+                  command=lambda: self.copy_to_clipboard(self.yt_trans_srt_text)).pack(side=tk.RIGHT, padx=(0, 5))
+        ttk.Button(yt_trans_srt_button_frame, text="💾 Save SRT", 
+                  command=lambda: self.save_srt_file(self.yt_trans_srt_text)).pack(side=tk.RIGHT)
+        
+        self.yt_trans_srt_text = scrolledtext.ScrolledText(yt_trans_srt_frame, wrap=tk.WORD, 
+                                                          height=12, font=("Monaco", 10))
+        self.yt_trans_srt_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
+        
+        # Summary tab (when enabled)
+        yt_summary_frame = ttk.Frame(self.yt_output_notebook)
+        self.yt_output_notebook.add(yt_summary_frame, text="📋 Summary")
+        
+        yt_summ_button_frame = ttk.Frame(yt_summary_frame)
+        yt_summ_button_frame.pack(fill=tk.X, padx=5, pady=5)
+        ttk.Button(yt_summ_button_frame, text="📋 Copy", 
+                  command=lambda: self.copy_to_clipboard(self.yt_summary_text)).pack(side=tk.RIGHT)
+        
+        self.yt_summary_text = scrolledtext.ScrolledText(yt_summary_frame, wrap=tk.WORD, 
+                                                        height=12, font=("Consolas", 11))
+        self.yt_summary_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
         
     def setup_local_video_tab(self, notebook):
         local_frame = ttk.Frame(notebook)
@@ -201,19 +258,7 @@ class YapGUI:
         local_options_frame = ttk.LabelFrame(main_frame, text="Options", padding="10")
         local_options_frame.pack(fill=tk.X, pady=(0, 15))
         
-        # Output format
-        local_format_frame = ttk.Frame(local_options_frame)
-        local_format_frame.pack(fill=tk.X, pady=(0, 10))
-        
-        ttk.Label(local_format_frame, text="Output Format:").pack(side=tk.LEFT, padx=(0, 15))
-        
-        self.local_output_format = tk.StringVar(value="txt")
-        ttk.Radiobutton(local_format_frame, text="Text (.txt)", variable=self.local_output_format, 
-                       value="txt").pack(side=tk.LEFT, padx=(0, 15))
-        ttk.Radiobutton(local_format_frame, text="Subtitles (.srt)", variable=self.local_output_format, 
-                       value="srt").pack(side=tk.LEFT)
-        
-        # Additional options
+        # Options
         local_opts_frame = ttk.Frame(local_options_frame)
         local_opts_frame.pack(fill=tk.X)
         
@@ -276,13 +321,82 @@ class YapGUI:
                                       font=("Arial", 10))
         local_status_label.pack(pady=(0, 10))
         
-        # Output
-        local_output_frame = ttk.LabelFrame(main_frame, text="Transcription Output", padding="10")
+        # Output with tabs
+        local_output_frame = ttk.LabelFrame(main_frame, text="Output", padding="10")
         local_output_frame.pack(fill=tk.BOTH, expand=True)
         
-        self.local_output_text = scrolledtext.ScrolledText(local_output_frame, wrap=tk.WORD, 
-                                                          height=12, font=("Consolas", 11))
-        self.local_output_text.pack(fill=tk.BOTH, expand=True)
+        # Create notebook for output tabs
+        self.local_output_notebook = ttk.Notebook(local_output_frame)
+        self.local_output_notebook.pack(fill=tk.BOTH, expand=True)
+        
+        # Original transcription tab
+        local_original_frame = ttk.Frame(self.local_output_notebook)
+        self.local_output_notebook.add(local_original_frame, text="📝 Original")
+        
+        local_orig_button_frame = ttk.Frame(local_original_frame)
+        local_orig_button_frame.pack(fill=tk.X, padx=5, pady=5)
+        ttk.Button(local_orig_button_frame, text="📋 Copy", 
+                  command=lambda: self.copy_to_clipboard(self.local_original_text)).pack(side=tk.RIGHT)
+        
+        self.local_original_text = scrolledtext.ScrolledText(local_original_frame, wrap=tk.WORD, 
+                                                            height=12, font=("Consolas", 11))
+        self.local_original_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
+        
+        # Translation tab
+        local_translation_frame = ttk.Frame(self.local_output_notebook)
+        self.local_output_notebook.add(local_translation_frame, text="🌍 Translation")
+        
+        local_trans_button_frame = ttk.Frame(local_translation_frame)
+        local_trans_button_frame.pack(fill=tk.X, padx=5, pady=5)
+        ttk.Button(local_trans_button_frame, text="📋 Copy", 
+                  command=lambda: self.copy_to_clipboard(self.local_translation_text)).pack(side=tk.RIGHT)
+        
+        self.local_translation_text = scrolledtext.ScrolledText(local_translation_frame, wrap=tk.WORD, 
+                                                               height=12, font=("Consolas", 11))
+        self.local_translation_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
+        
+        # Original SRT tab
+        local_orig_srt_frame = ttk.Frame(self.local_output_notebook)
+        self.local_output_notebook.add(local_orig_srt_frame, text="🎬 Original SRT")
+        
+        local_orig_srt_button_frame = ttk.Frame(local_orig_srt_frame)
+        local_orig_srt_button_frame.pack(fill=tk.X, padx=5, pady=5)
+        ttk.Button(local_orig_srt_button_frame, text="📋 Copy", 
+                  command=lambda: self.copy_to_clipboard(self.local_orig_srt_text)).pack(side=tk.RIGHT, padx=(0, 5))
+        ttk.Button(local_orig_srt_button_frame, text="💾 Save SRT", 
+                  command=lambda: self.save_srt_file(self.local_orig_srt_text)).pack(side=tk.RIGHT)
+        
+        self.local_orig_srt_text = scrolledtext.ScrolledText(local_orig_srt_frame, wrap=tk.WORD, 
+                                                            height=12, font=("Monaco", 10))
+        self.local_orig_srt_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
+        
+        # Translated SRT tab
+        local_trans_srt_frame = ttk.Frame(self.local_output_notebook)
+        self.local_output_notebook.add(local_trans_srt_frame, text="🌍 Translated SRT")
+        
+        local_trans_srt_button_frame = ttk.Frame(local_trans_srt_frame)
+        local_trans_srt_button_frame.pack(fill=tk.X, padx=5, pady=5)
+        ttk.Button(local_trans_srt_button_frame, text="📋 Copy", 
+                  command=lambda: self.copy_to_clipboard(self.local_trans_srt_text)).pack(side=tk.RIGHT, padx=(0, 5))
+        ttk.Button(local_trans_srt_button_frame, text="💾 Save SRT", 
+                  command=lambda: self.save_srt_file(self.local_trans_srt_text)).pack(side=tk.RIGHT)
+        
+        self.local_trans_srt_text = scrolledtext.ScrolledText(local_trans_srt_frame, wrap=tk.WORD, 
+                                                             height=12, font=("Monaco", 10))
+        self.local_trans_srt_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
+        
+        # Summary tab (when enabled)
+        local_summary_frame = ttk.Frame(self.local_output_notebook)
+        self.local_output_notebook.add(local_summary_frame, text="📋 Summary")
+        
+        local_summ_button_frame = ttk.Frame(local_summary_frame)
+        local_summ_button_frame.pack(fill=tk.X, padx=5, pady=5)
+        ttk.Button(local_summ_button_frame, text="📋 Copy", 
+                  command=lambda: self.copy_to_clipboard(self.local_summary_text)).pack(side=tk.RIGHT)
+        
+        self.local_summary_text = scrolledtext.ScrolledText(local_summary_frame, wrap=tk.WORD, 
+                                                           height=12, font=("Consolas", 11))
+        self.local_summary_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
         
     def setup_settings_tab(self, notebook):
         settings_frame = ttk.Frame(notebook)
@@ -335,8 +449,20 @@ class YapGUI:
                                   width=30, state="readonly")
         model_combo.pack(side=tk.LEFT)
         
+        # Translation Architecture Info
+        architecture_frame = ttk.LabelFrame(api_frame, text="🔒 Privacy-First Translation Architecture", padding="10")
+        architecture_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        architecture_info = ttk.Label(architecture_frame, 
+                                    text="1. 🏠 Translation: Local translate-shell (offline translation)\n" +
+                                         "2. 🤖 Enhancement: OpenRouter API for titles, emojis & formatting only\n" +
+                                         "3. 🔒 Privacy: Original content never leaves your Mac for translation\n" +
+                                         "4. 🌐 Fallback: Full OpenRouter translation if local translation fails", 
+                                    font=("Arial", 9), wraplength=600)
+        architecture_info.pack()
+        
         # API info
-        api_info = ttk.Label(api_frame, text="Enter your OpenRouter API key for translation. Get one at: https://openrouter.ai/keys\n🔒 Your key is encrypted with machine-specific info - safe for GitHub!", 
+        api_info = ttk.Label(api_frame, text="Enter your OpenRouter API key for title/formatting enhancement. Get one at: https://openrouter.ai/keys\n🔒 Your key is encrypted with machine-specific info - safe for GitHub!", 
                             font=("Arial", 9), wraplength=600)
         api_info.pack(pady=(5, 0))
         
@@ -620,6 +746,42 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to save export file: {e}")
     
+    def copy_to_clipboard(self, text_widget):
+        """Copy content from text widget to clipboard"""
+        try:
+            content = text_widget.get(1.0, tk.END).strip()
+            if content:
+                self.root.clipboard_clear()
+                self.root.clipboard_append(content)
+                # Brief feedback
+                self.root.after(0, lambda: messagebox.showinfo("Copied", "Content copied to clipboard!"))
+            else:
+                messagebox.showwarning("Warning", "No content to copy")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to copy: {e}")
+    
+    def save_srt_file(self, text_widget):
+        """Save SRT content to file"""
+        try:
+            content = text_widget.get(1.0, tk.END).strip()
+            if not content or content == "No content available for SRT generation":
+                messagebox.showwarning("Warning", "No SRT content to save")
+                return
+            
+            filename = filedialog.asksaveasfilename(
+                title="Save SRT Subtitles",
+                defaultextension=".srt",
+                filetypes=[("SRT files", "*.srt"), ("All files", "*.*")],
+                initialdir=self.output_dir
+            )
+            
+            if filename:
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                messagebox.showinfo("Success", f"SRT file saved to {filename}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save SRT file: {e}")
+    
     def download_and_transcribe(self):
         url = self.youtube_url_var.get().strip()
         
@@ -634,7 +796,12 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
         self.yt_download_button.config(state='disabled')
         self.yt_progress.start()
         self.yt_status_var.set("Starting download...")
-        self.yt_output_text.delete(1.0, tk.END)
+        # Clear all YouTube output tabs
+        self.yt_original_text.delete(1.0, tk.END)
+        self.yt_translation_text.delete(1.0, tk.END)
+        self.yt_orig_srt_text.delete(1.0, tk.END)
+        self.yt_trans_srt_text.delete(1.0, tk.END)
+        self.yt_summary_text.delete(1.0, tk.END)
         
         thread = threading.Thread(target=self.run_youtube_transcription, args=(url,))
         thread.daemon = True
@@ -647,7 +814,6 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
     
     def run_youtube_transcription(self, url):
         try:
-            output_format = self.yt_output_format.get()
             summarize = self.yt_summarize_var.get()
             keep_audio = self.yt_keep_audio_var.get()
             
@@ -677,13 +843,8 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             self.root.after(0, lambda: self.yt_status_var.set("Transcribing audio..."))
             
             yap_cmd = ['yap', str(audio_file)]
-            
-            if output_format == "srt":
-                output_file = audio_file.with_suffix('.srt')
-                yap_cmd.extend(['--srt', '-o', str(output_file)])
-            else:
-                output_file = audio_file.with_suffix('.txt')
-                yap_cmd.extend(['-o', str(output_file)])
+            output_file = audio_file.with_suffix('.txt')
+            yap_cmd.extend(['-o', str(output_file)])
             
             yap_result = subprocess.run(yap_cmd, capture_output=True, text=True, timeout=300)
             
@@ -708,30 +869,27 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             # Format transcription into paragraphs
             formatted_transcription = self.format_text_in_paragraphs(transcription_text)
             
-            # Process additional features
-            output_parts = []
+            # Prepare results dictionary
+            results = {
+                'original': formatted_transcription,
+                'original_srt': self.create_srt_from_text(formatted_transcription)
+            }
             
-            # Generate title and summary if requested
-            if summarize and transcription_text:
-                self.root.after(0, lambda: self.yt_status_var.set("Generating title and summary..."))
-                title, summary = self.generate_title_and_summary(transcription_text)
-                output_parts.append(f"{title}\n{'='*len(title)}")
-            
-            output_parts.append(f"📝 TRANSCRIPTION:\n{formatted_transcription}")
-            
+            # Generate translation if requested
             if self.yt_translate_var.get() and transcription_text:
                 self.root.after(0, lambda: self.yt_status_var.set("Translating text..."))
                 target_lang = self.yt_target_lang.get()
                 translation = self.translate_text(formatted_transcription, target_lang)
-                formatted_translation = self.format_text_in_paragraphs(translation)
-                output_parts.append(f"\n🌍 TRANSLATION ({target_lang.upper()}):\n{formatted_translation}")
+                results['translation'] = translation
+                results['translated_srt'] = self.create_srt_from_text(translation, is_translation=True)
             
+            # Generate summary if requested  
             if summarize and transcription_text:
-                output_parts.append(f"\n📋 SUMMARY:\n{summary}")
+                self.root.after(0, lambda: self.yt_status_var.set("Generating title and summary..."))
+                title, summary = self.generate_title_and_summary(transcription_text)
+                results['summary'] = f"{title}\n{'='*len(title)}\n\n{summary}"
             
-            output = "\n\n".join(output_parts) if len(output_parts) > 1 else formatted_transcription
-            
-            self.root.after(0, self.on_youtube_success, output)
+            self.root.after(0, self.on_youtube_success, results)
             
         except subprocess.TimeoutExpired:
             self.root.after(0, self.on_youtube_error, "Operation timed out")
@@ -781,50 +939,343 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
         
         return '\n\n'.join(paragraphs)
     
+    def create_srt_from_text(self, text, is_translation=False):
+        """Convert text to SRT subtitle format"""
+        if not text or text.startswith("⚠️"):
+            return "No content available for SRT generation"
+        
+        # Clean text and split into sentences
+        clean_text = text
+        if is_translation and "TITLE:" in text:
+            # Extract just the translation part
+            lines = text.split('\n')
+            translation_lines = []
+            found_translation = False
+            for line in lines:
+                if line.startswith("TRANSLATION:"):
+                    found_translation = True
+                elif found_translation and line.strip() and not line.startswith("="):
+                    translation_lines.append(line.strip())
+            clean_text = ' '.join(translation_lines) if translation_lines else text
+        
+        # Split into sentences for SRT timing
+        sentences = []
+        for delimiter in ['. ', '! ', '? ']:
+            clean_text = clean_text.replace(delimiter, delimiter + '|SPLIT|')
+        
+        raw_sentences = clean_text.split('|SPLIT|')
+        for sentence in raw_sentences:
+            sentence = sentence.strip()
+            if sentence and len(sentence) > 10:  # Only include substantial sentences
+                sentences.append(sentence)
+        
+        if not sentences:
+            return "No suitable content for SRT generation"
+        
+        # Generate SRT format
+        srt_content = ""
+        duration_per_subtitle = 4  # 4 seconds per subtitle
+        
+        for i, sentence in enumerate(sentences):
+            start_time = i * duration_per_subtitle
+            end_time = (i + 1) * duration_per_subtitle
+            
+            # Format time as SRT timestamp (HH:MM:SS,mmm)
+            def format_time(seconds):
+                hours = seconds // 3600
+                minutes = (seconds % 3600) // 60
+                secs = seconds % 60
+                return f"{hours:02d}:{minutes:02d}:{secs:02d},000"
+            
+            start_srt = format_time(start_time)
+            end_srt = format_time(end_time)
+            
+            # Add subtitle entry
+            srt_content += f"{i+1}\n{start_srt} --> {end_srt}\n{sentence.strip()}\n\n"
+        
+        return srt_content.strip()
+    
     def generate_title_and_summary(self, text):
-        """Generate title with emojis and summary using llm"""
+        """Generate title with emojis and summary using OpenRouter API"""
         try:
+            api_key = os.environ.get('OPENROUTER_API_KEY') or self.openrouter_api_key.get().strip()
+            
+            if not api_key:
+                return "📝 Transcription Summary", f"⚠️ OpenRouter API key required for AI summaries.\n\nPlease enter your API key in Settings tab."
+            
+            model = self.translation_model.get()
+            
             # First, generate a title with emojis
-            title_prompt = """Based on this transcript, create a catchy title with relevant emojis. 
-            Use 2-3 emojis that match the content. Keep it under 60 characters.
-            Just return the title, nothing else.
+            title_payload = {
+                "model": model,
+                "messages": [
+                    {
+                        "role": "system", 
+                        "content": "Based on this transcript, create a catchy title with relevant emojis. Use 2-3 emojis that match the content. Keep it under 60 characters. Just return the title, nothing else."
+                    },
+                    {
+                        "role": "user", 
+                        "content": text[:1000]  # Limit for title generation
+                    }
+                ],
+                "max_tokens": 100,
+                "temperature": 0.3
+            }
             
-            Transcript:"""
-            
-            title_cmd = ['llm', '-m', 'mlx-community/Llama-3.2-1B-Instruct-4bit']
-            title_result = subprocess.run(title_cmd, input=f"{title_prompt}\n{text}", 
-                                        capture_output=True, text=True, timeout=60)
-            
-            title = "📝 Transcription Summary"  # Default title
-            if title_result.returncode == 0 and title_result.stdout.strip():
-                title = title_result.stdout.strip().split('\n')[0]  # Take first line only
+            title = self.make_openrouter_request(title_payload)
+            if title.startswith("⚠️"):
+                return "📝 Transcription Summary", title
             
             # Then generate summary
-            summary_prompt = """Summarize this transcript in 2-3 clear paragraphs. 
-            Focus on the main points and key information.
+            summary_payload = {
+                "model": model,
+                "messages": [
+                    {
+                        "role": "system", 
+                        "content": "Summarize this transcript in 2-3 clear paragraphs. Focus on the main points and key information."
+                    },
+                    {
+                        "role": "user", 
+                        "content": text
+                    }
+                ],
+                "max_tokens": 500,
+                "temperature": 0.1
+            }
             
-            Transcript:"""
+            summary = self.make_openrouter_request(summary_payload)
             
-            summary_cmd = ['llm', '-m', 'mlx-community/Llama-3.2-1B-Instruct-4bit']
-            summary_result = subprocess.run(summary_cmd, input=f"{summary_prompt}\n{text}", 
-                                          capture_output=True, text=True, timeout=120)
-            
-            if summary_result.returncode == 0:
-                summary = summary_result.stdout.strip()
-                return title, summary
-            else:
-                return title, f"⚠️ Summary generation failed.\n\nTo enable AI summaries, install LLM:\n\n🔧 brew install llm\n\nThen install the model:\n🔧 llm install mlx-community/Llama-3.2-1B-Instruct-4bit"
+            return title.strip(), summary
                 
-        except subprocess.TimeoutExpired:
-            return "⏱️ Transcription Summary", "Summary generation timed out"
         except Exception as e:
-            if "No such file or directory: 'llm'" in str(e):
-                return "📝 Transcription Summary", f"⚠️ LLM not installed.\n\nTo enable AI summaries and titles:\n\n🔧 brew install llm\n🔧 llm install mlx-community/Llama-3.2-1B-Instruct-4bit"
-            else:
-                return "📝 Transcription Summary", f"Summary error: {str(e)}"
+            return "📝 Transcription Summary", f"Summary error: {str(e)}"
     
-    def translate_text(self, text, target_lang):
-        """Translate text using OpenRouter API"""
+    def make_openrouter_request(self, payload):
+        """Make a request to OpenRouter API"""
+        try:
+            api_key = os.environ.get('OPENROUTER_API_KEY') or self.openrouter_api_key.get().strip()
+            
+            import tempfile
+            import json
+            
+            # Write payload to temporary file
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                json.dump(payload, f)
+                payload_file = f.name
+            
+            try:
+                # Use curl to make the request to OpenRouter
+                curl_cmd = [
+                    'curl', '-s', '-X', 'POST',
+                    'https://openrouter.ai/api/v1/chat/completions',
+                    '-H', f'Authorization: Bearer {api_key}',
+                    '-H', 'Content-Type: application/json',
+                    '-H', 'HTTP-Referer: https://github.com/yap-gui',
+                    '-H', 'X-Title: Yap GUI AI Summary',
+                    '-d', f'@{payload_file}',
+                    '--max-time', '60'
+                ]
+                
+                result = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=70)
+                
+                if result.returncode == 0:
+                    response_data = json.loads(result.stdout)
+                    
+                    if 'choices' in response_data and len(response_data['choices']) > 0:
+                        return response_data['choices'][0]['message']['content'].strip()
+                    elif 'error' in response_data:
+                        error_msg = response_data['error'].get('message', 'Unknown API error')
+                        return f"⚠️ OpenRouter API Error: {error_msg}"
+                    else:
+                        return "⚠️ Unexpected API response format"
+                else:
+                    return f"⚠️ API request failed: {result.stderr}"
+                    
+            finally:
+                # Clean up temp file
+                try:
+                    os.unlink(payload_file)
+                except:
+                    pass
+                    
+        except json.JSONDecodeError as e:
+            return f"⚠️ Invalid API response: {str(e)}"
+        except subprocess.TimeoutExpired:
+            return "⚠️ API request timed out"
+        except Exception as e:
+            return f"⚠️ API error: {str(e)}"
+    
+    def translate_locally_then_enhance(self, text, target_lang):
+        """First translate locally with macOS, then enhance with OpenRouter for title and formatting"""
+        try:
+            # Step 1: Translate locally using translate-shell
+            local_translation = self.translate_with_local_tool(text, target_lang)
+            
+            if local_translation.startswith("⚠️"):
+                # If local translation fails, fallback to full OpenRouter translation
+                return self.translate_with_title_and_paragraphs(text, target_lang)
+            
+            # Step 2: Use OpenRouter only for title generation and formatting
+            return self.enhance_translation_with_openrouter(local_translation, target_lang)
+            
+        except Exception as e:
+            return f"⚠️ Translation error: {str(e)}"
+    
+    def translate_with_local_tool(self, text, target_lang):
+        """Use translate-shell for privacy-focused local translation"""
+        try:
+            # Check if translate-shell is available
+            try:
+                result = subprocess.run(['/opt/homebrew/bin/trans', '--version'], capture_output=True, text=True, timeout=5)
+                if result.returncode != 0:
+                    return "⚠️ translate-shell not available. Install with: brew install translate-shell"
+            except:
+                return "⚠️ Cannot check translate-shell availability."
+            
+            # Language mapping for translate-shell
+            translate_lang_codes = {
+                "es": "es", "fr": "fr", "de": "de", "it": "it",
+                "pt": "pt", "ja": "ja", "ko": "ko", 
+                "zh": "zh", "ru": "ru", "ar": "ar"
+            }
+            
+            target_code = translate_lang_codes.get(target_lang, target_lang)
+            
+            # Split text into chunks to avoid command line length limits
+            max_chunk_size = 4000  # Conservative limit for command line
+            chunks = []
+            words = text.split()
+            current_chunk = []
+            current_size = 0
+            
+            for word in words:
+                word_size = len(word) + 1  # +1 for space
+                if current_size + word_size > max_chunk_size and current_chunk:
+                    chunks.append(' '.join(current_chunk))
+                    current_chunk = [word]
+                    current_size = word_size
+                else:
+                    current_chunk.append(word)
+                    current_size += word_size
+            
+            if current_chunk:
+                chunks.append(' '.join(current_chunk))
+            
+            # Translate each chunk
+            translated_chunks = []
+            for i, chunk in enumerate(chunks):
+                try:
+                    # Use translate-shell command
+                    cmd = ['/opt/homebrew/bin/trans', '-b', f'en:{target_code}']
+                    result = subprocess.run(cmd, input=chunk, capture_output=True, text=True, timeout=30)
+                    
+                    if result.returncode == 0 and result.stdout.strip():
+                        translated_chunks.append(result.stdout.strip())
+                    else:
+                        return f"⚠️ Local translation failed for chunk {i+1}: {result.stderr}"
+                        
+                except subprocess.TimeoutExpired:
+                    return f"⚠️ Translation timeout for chunk {i+1}"
+                except Exception as e:
+                    return f"⚠️ Translation error for chunk {i+1}: {str(e)}"
+            
+            # Combine all translated chunks
+            full_translation = ' '.join(translated_chunks)
+            return full_translation
+            
+        except Exception as e:
+            return f"⚠️ Local translation error: {str(e)}"
+    
+    def enhance_translation_with_openrouter(self, translated_text, target_lang):
+        """Use OpenRouter only for title generation and paragraph formatting of already-translated text"""
+        try:
+            api_key = os.environ.get('OPENROUTER_API_KEY') or self.openrouter_api_key.get().strip()
+            
+            if not api_key:
+                # Return the translation without enhancement if no API key
+                return f"🔒 Local Translation (No Title/Formatting)\n{'='*40}\n\n{translated_text}"
+            
+            # Language mapping
+            lang_names = {
+                "es": "Spanish", "fr": "French", "de": "German", "it": "Italian",
+                "pt": "Portuguese", "ja": "Japanese", "ko": "Korean", 
+                "zh": "Chinese", "ru": "Russian", "ar": "Arabic"
+            }
+            
+            target_lang_name = lang_names.get(target_lang, target_lang)
+            model = self.translation_model.get()
+            
+            # Enhanced prompt for formatting and title generation ONLY
+            enhancement_prompt = f"""You are a content formatter and title generator. The text below is ALREADY translated to {target_lang_name}.
+
+Your task is to:
+1. Create a catchy title with 2-3 relevant emojis based on the content (in {target_lang_name})
+2. Format the existing translation into well-organized paragraphs (3-4 sentences per paragraph)
+3. DO NOT retranslate - just improve formatting and add title
+4. Maintain all the original meaning and content
+
+Format your response exactly like this:
+TITLE: [Your title with emojis]
+
+FORMATTED_TEXT:
+[First paragraph]
+
+[Second paragraph]
+
+[Continue with more paragraphs as needed]
+
+Here is the already-translated text to format:"""
+            
+            payload = {
+                "model": model,
+                "messages": [
+                    {
+                        "role": "system", 
+                        "content": enhancement_prompt
+                    },
+                    {
+                        "role": "user", 
+                        "content": translated_text
+                    }
+                ],
+                "max_tokens": 2500,
+                "temperature": 0.3
+            }
+            
+            result = self.make_openrouter_request(payload)
+            
+            # Parse the result to extract title and formatted text
+            if result.startswith("⚠️"):
+                # Return local translation if enhancement fails
+                return f"🔒 Local Translation (Enhancement Failed)\n{'='*45}\n\n{translated_text}"
+            
+            # Extract title and formatted text
+            lines = result.split('\n')
+            title = ""
+            formatted_lines = []
+            found_formatted_text = False
+            
+            for line in lines:
+                if line.startswith("TITLE:"):
+                    title = line.replace("TITLE:", "").strip()
+                elif line.startswith("FORMATTED_TEXT:"):
+                    found_formatted_text = True
+                elif found_formatted_text and line.strip():
+                    formatted_lines.append(line.strip())
+            
+            if title and formatted_lines:
+                formatted_text = '\n\n'.join([line for line in formatted_lines if line])
+                return f"🔒 {title}\n{'='*len(title)}\n\n{formatted_text}"
+            else:
+                # Fallback: return the local translation with a generic title
+                return f"🔒 Local Translation\n{'='*18}\n\n{translated_text}"
+                
+        except Exception as e:
+            # Return local translation if enhancement fails
+            return f"🔒 Local Translation (Enhancement Error)\n{'='*40}\n\n{translated_text}"
+
+    def translate_with_title_and_paragraphs(self, text, target_lang):
+        """Translate text with title generation and paragraph formatting using OpenRouter API (fallback method)"""
         try:
             api_key = os.environ.get('OPENROUTER_API_KEY') or self.openrouter_api_key.get().strip()
             
@@ -841,75 +1292,75 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             target_lang_name = lang_names.get(target_lang, target_lang)
             model = self.translation_model.get()
             
-            # Prepare the OpenRouter API request
-            import json
+            # Enhanced prompt for translation with title and formatting
+            enhanced_prompt = f"""You are a professional translator and content formatter. Please:
+
+1. First, create a catchy title with 2-3 relevant emojis based on the content (in {target_lang_name})
+2. Then translate the entire text to {target_lang_name}
+3. Format the translation into well-organized paragraphs (3-4 sentences per paragraph)
+4. Maintain the meaning and tone of the original text
+
+Format your response exactly like this:
+TITLE: [Your title with emojis]
+
+TRANSLATION:
+[First paragraph of translation]
+
+[Second paragraph of translation]
+
+[Continue with more paragraphs as needed]
+
+Here is the text to translate:"""
             
             payload = {
                 "model": model,
                 "messages": [
                     {
                         "role": "system", 
-                        "content": f"You are a professional translator. Translate the following text to {target_lang_name}. Maintain the original formatting and structure. Only return the translation, no explanations."
+                        "content": enhanced_prompt
                     },
                     {
                         "role": "user", 
                         "content": text
                     }
                 ],
-                "max_tokens": 2000,
-                "temperature": 0.1
+                "max_tokens": 2500,
+                "temperature": 0.2  # Slightly higher for more creative titles
             }
             
-            # Make the API request using curl (to avoid additional dependencies)
-            import tempfile
+            result = self.make_openrouter_request(payload)
             
-            # Write payload to temporary file
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-                json.dump(payload, f)
-                payload_file = f.name
+            # Parse the result to extract title and translation
+            if result.startswith("⚠️"):
+                return result
             
-            try:
-                # Use curl to make the request to OpenRouter
-                curl_cmd = [
-                    'curl', '-s', '-X', 'POST',
-                    'https://openrouter.ai/api/v1/chat/completions',
-                    '-H', f'Authorization: Bearer {api_key}',
-                    '-H', 'Content-Type: application/json',
-                    '-H', 'HTTP-Referer: https://github.com/yap-gui',  # Required by OpenRouter
-                    '-H', 'X-Title: Yap GUI Translation',  # Optional: helps with tracking
-                    '-d', f'@{payload_file}',
-                    '--max-time', '60'
-                ]
-                
-                result = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=70)
-                
-                if result.returncode == 0:
-                    response_data = json.loads(result.stdout)
+            # Extract title and translation from formatted response
+            lines = result.split('\n')
+            title = ""
+            translation_lines = []
+            found_translation = False
+            
+            for line in lines:
+                if line.startswith("TITLE:"):
+                    title = line.replace("TITLE:", "").strip()
+                elif line.startswith("TRANSLATION:"):
+                    found_translation = True
+                elif found_translation and line.strip():
+                    translation_lines.append(line.strip())
+            
+            if title and translation_lines:
+                formatted_translation = '\n\n'.join([line for line in translation_lines if line])
+                return f"{title}\n{'='*len(title)}\n\n{formatted_translation}"
+            else:
+                # Fallback: just return the result as-is if parsing fails
+                return result
                     
-                    if 'choices' in response_data and len(response_data['choices']) > 0:
-                        translation = response_data['choices'][0]['message']['content'].strip()
-                        return translation
-                    elif 'error' in response_data:
-                        error_msg = response_data['error'].get('message', 'Unknown API error')
-                        return f"⚠️ OpenRouter API Error: {error_msg}"
-                    else:
-                        return "⚠️ Unexpected API response format"
-                else:
-                    return f"⚠️ Translation request failed: {result.stderr}"
-                    
-            finally:
-                # Clean up temp file
-                try:
-                    os.unlink(payload_file)
-                except:
-                    pass
-                    
-        except json.JSONDecodeError as e:
-            return f"⚠️ Invalid API response: {str(e)}"
-        except subprocess.TimeoutExpired:
-            return "⚠️ Translation request timed out"
         except Exception as e:
             return f"⚠️ Translation error: {str(e)}"
+    
+    def translate_text(self, text, target_lang):
+        """Main translation method - uses local macOS translation then OpenRouter for enhancement"""
+        return self.translate_locally_then_enhance(text, target_lang)
     
     def transcribe_local_video(self):
         file_path = self.local_file_var.get().strip()
@@ -921,7 +1372,12 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
         self.local_transcribe_button.config(state='disabled')
         self.local_progress.start()
         self.local_status_var.set("Transcribing video...")
-        self.local_output_text.delete(1.0, tk.END)
+        # Clear all local video output tabs
+        self.local_original_text.delete(1.0, tk.END)
+        self.local_translation_text.delete(1.0, tk.END)
+        self.local_orig_srt_text.delete(1.0, tk.END)
+        self.local_trans_srt_text.delete(1.0, tk.END)
+        self.local_summary_text.delete(1.0, tk.END)
         
         thread = threading.Thread(target=self.run_local_transcription, args=(file_path,))
         thread.daemon = True
@@ -929,18 +1385,12 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
     
     def run_local_transcription(self, file_path):
         try:
-            output_format = self.local_output_format.get()
             summarize = self.local_summarize_var.get()
             
-            # Build yap command with output to file for clean results
-            if output_format == "srt":
-                output_file = os.path.join(self.output_dir, 
-                                         f"{Path(file_path).stem}_captions.srt")
-                cmd = ['yap', file_path, '--srt', '-o', output_file]
-            else:
-                output_file = os.path.join(self.output_dir, 
-                                         f"{Path(file_path).stem}_transcript.txt")
-                cmd = ['yap', file_path, '-o', output_file]
+            # Build yap command with output to file for clean results  
+            output_file = os.path.join(self.output_dir, 
+                                     f"{Path(file_path).stem}_transcription.txt")
+            cmd = ['yap', file_path, '-o', output_file]
             
             # Run transcription
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
@@ -964,92 +1414,131 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
                 # Format transcription into paragraphs
                 formatted_transcription = self.format_text_in_paragraphs(transcription_text)
                 
-                output_parts = []
+                # Prepare results dictionary
+                results = {
+                    'original': formatted_transcription,
+                    'original_srt': self.create_srt_from_text(formatted_transcription)
+                }
                 
-                # Generate title and summary if requested
-                if summarize and transcription_text:
-                    self.root.after(0, lambda: self.local_status_var.set("Generating title and summary..."))
-                    title, summary = self.generate_title_and_summary(transcription_text)
-                    output_parts.append(f"{title}\n{'='*len(title)}")
-                
-                output_parts.append(f"📝 TRANSCRIPTION:\n{formatted_transcription}")
-                
+                # Generate translation if requested
                 if self.local_translate_var.get() and transcription_text:
                     self.root.after(0, lambda: self.local_status_var.set("Translating text..."))
                     target_lang = self.local_target_lang.get()
                     translation = self.translate_text(formatted_transcription, target_lang)
-                    formatted_translation = self.format_text_in_paragraphs(translation)
-                    output_parts.append(f"\n🌍 TRANSLATION ({target_lang.upper()}):\n{formatted_translation}")
+                    results['translation'] = translation
+                    results['translated_srt'] = self.create_srt_from_text(translation, is_translation=True)
                 
+                # Generate summary if requested
                 if summarize and transcription_text:
-                    output_parts.append(f"\n📋 SUMMARY:\n{summary}")
-                
-                output = "\n\n".join(output_parts) if len(output_parts) > 1 else formatted_transcription
+                    self.root.after(0, lambda: self.local_status_var.set("Generating title and summary..."))
+                    title, summary = self.generate_title_and_summary(transcription_text)
+                    results['summary'] = f"{title}\n{'='*len(title)}\n\n{summary}"
             else:
-                output = transcription_text
+                results = {'original': transcription_text}
             
-            self.root.after(0, self.on_local_success, output, output_file)
+            self.root.after(0, self.on_local_success, results, output_file)
             
         except subprocess.TimeoutExpired:
             self.root.after(0, self.on_local_error, "Transcription timed out")
         except Exception as e:
             self.root.after(0, self.on_local_error, str(e))
     
-    def on_youtube_success(self, output):
+    def on_youtube_success(self, results):
         self.yt_progress.stop()
         self.yt_download_button.config(state='normal')
         self.yt_status_var.set("Download and transcription completed!")
         
-        self.yt_output_text.delete(1.0, tk.END)
-        self.yt_output_text.insert(tk.END, output)
+        # Clear all tabs
+        self.clear_youtube_output()
+        
+        # Populate tabs with results
+        if 'original' in results:
+            self.yt_original_text.insert(tk.END, results['original'])
+        
+        if 'translation' in results:
+            self.yt_translation_text.insert(tk.END, results['translation'])
+        
+        if 'original_srt' in results:
+            self.yt_orig_srt_text.insert(tk.END, results['original_srt'])
+        
+        if 'translated_srt' in results:
+            self.yt_trans_srt_text.insert(tk.END, results['translated_srt'])
+        
+        if 'summary' in results:
+            self.yt_summary_text.insert(tk.END, results['summary'])
     
     def on_youtube_error(self, error):
         self.yt_progress.stop()
         self.yt_download_button.config(state='normal')
         self.yt_status_var.set("Error occurred")
         
-        self.yt_output_text.delete(1.0, tk.END)
-        self.yt_output_text.insert(tk.END, f"Error: {error}")
+        self.clear_youtube_output()
+        self.yt_original_text.insert(tk.END, f"Error: {error}")
         
         messagebox.showerror("Error", f"Operation failed: {error}")
     
-    def on_local_success(self, output, output_file):
+    def on_local_success(self, results, output_file):
         self.local_progress.stop()
         self.local_transcribe_button.config(state='normal')
         self.local_status_var.set(f"Transcription saved to {os.path.basename(output_file)}")
         
-        self.local_output_text.delete(1.0, tk.END)
-        self.local_output_text.insert(tk.END, output)
+        # Clear all tabs
+        self.clear_local_output()
+        
+        # Populate tabs with results
+        if 'original' in results:
+            self.local_original_text.insert(tk.END, results['original'])
+        
+        if 'translation' in results:
+            self.local_translation_text.insert(tk.END, results['translation'])
+        
+        if 'original_srt' in results:
+            self.local_orig_srt_text.insert(tk.END, results['original_srt'])
+        
+        if 'translated_srt' in results:
+            self.local_trans_srt_text.insert(tk.END, results['translated_srt'])
+        
+        if 'summary' in results:
+            self.local_summary_text.insert(tk.END, results['summary'])
     
     def on_local_error(self, error):
         self.local_progress.stop()
         self.local_transcribe_button.config(state='normal')
         self.local_status_var.set("Error occurred")
         
-        self.local_output_text.delete(1.0, tk.END)
-        self.local_output_text.insert(tk.END, f"Error: {error}")
+        self.clear_local_output()
+        self.local_original_text.insert(tk.END, f"Error: {error}")
         
         messagebox.showerror("Error", f"Transcription failed: {error}")
     
     def clear_youtube_output(self):
-        self.yt_output_text.delete(1.0, tk.END)
+        self.yt_original_text.delete(1.0, tk.END)
+        self.yt_translation_text.delete(1.0, tk.END)
+        self.yt_orig_srt_text.delete(1.0, tk.END)
+        self.yt_trans_srt_text.delete(1.0, tk.END)
+        self.yt_summary_text.delete(1.0, tk.END)
         self.yt_status_var.set("Ready")
     
     def clear_local_output(self):
-        self.local_output_text.delete(1.0, tk.END)
+        self.local_original_text.delete(1.0, tk.END)
+        self.local_translation_text.delete(1.0, tk.END)
+        self.local_orig_srt_text.delete(1.0, tk.END)
+        self.local_trans_srt_text.delete(1.0, tk.END)
+        self.local_summary_text.delete(1.0, tk.END)
         self.local_status_var.set("Ready")
     
     def save_local_output(self):
-        content = self.local_output_text.get(1.0, tk.END).strip()
+        # Get content from the original text tab (main output)
+        content = self.local_original_text.get(1.0, tk.END).strip()
         
         if not content:
             messagebox.showwarning("Warning", "No output to save")
             return
         
-        # Determine default extension
-        ext = ".srt" if self.local_output_format.get() == "srt" else ".txt"
+        # Default to text file
+        ext = ".txt" 
         file_types = [
-            ("SRT files", "*.srt") if ext == ".srt" else ("Text files", "*.txt"),
+            ("Text files", "*.txt"),
             ("All files", "*.*")
         ]
         
