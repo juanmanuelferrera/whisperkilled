@@ -1351,6 +1351,32 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
         else:
             return 'Unknown'
     
+    def create_safe_filename(self, title, max_length=100):
+        """Create a safe filename from video title"""
+        import re
+        
+        # Remove or replace problematic characters
+        safe_title = re.sub(r'[<>:"/\\|?*]', '', title)
+        
+        # Replace multiple spaces with single space
+        safe_title = re.sub(r'\s+', ' ', safe_title)
+        
+        # Remove leading/trailing spaces
+        safe_title = safe_title.strip()
+        
+        # Truncate if too long (leave room for extension)
+        if len(safe_title) > max_length:
+            safe_title = safe_title[:max_length].strip()
+            # Try to break at a word boundary
+            if ' ' in safe_title:
+                safe_title = safe_title.rsplit(' ', 1)[0]
+        
+        # If still empty or too short, use a default name
+        if not safe_title or len(safe_title) < 3:
+            safe_title = "video"
+        
+        return safe_title
+    
     def is_valid_video_url(self, url):
         parsed = urlparse(url)
         # YouTube URLs
@@ -1373,9 +1399,10 @@ ENCRYPTED_OPENROUTER_KEY = "{encrypted_key}"
             # Step 1: Download and transcribe with separate commands for cleaner output
             self.root.after(0, lambda: self.yt_status_var.set(f"Downloading {platform} video and extracting audio..."))
             
-            # First, download the audio
+            # First, download the audio with a safer filename approach
+            # Use only video ID to avoid "filename too long" errors
             download_cmd = ['yt-dlp', url, '-x', '--audio-format', 'wav', 
-                           '--output', f'{self.output_dir}/%(title)s.%(ext)s']
+                           '--output', f'{self.output_dir}/%(id)s.%(ext)s']
             
             download_result = subprocess.run(download_cmd, capture_output=True, text=True, timeout=300)
             
